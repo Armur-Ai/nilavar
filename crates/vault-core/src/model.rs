@@ -173,7 +173,9 @@ impl VaultPrefs {
 
     /// Clamps values into their documented ranges.
     pub fn clamped(mut self) -> Self {
-        self.idle_lock_secs = self.idle_lock_secs.clamp(Self::IDLE_RANGE.0, Self::IDLE_RANGE.1);
+        self.idle_lock_secs = self
+            .idle_lock_secs
+            .clamp(Self::IDLE_RANGE.0, Self::IDLE_RANGE.1);
         self.clipboard_clear_secs = self
             .clipboard_clear_secs
             .clamp(Self::CLIPBOARD_RANGE.0, Self::CLIPBOARD_RANGE.1);
@@ -290,7 +292,12 @@ impl Vault {
     /// Children folders of `parent`, sorted by name.
     pub fn child_folders(&self, parent: Option<FolderId>) -> Vec<&Folder> {
         let mut v: Vec<&Folder> = self.folders.iter().filter(|f| f.parent == parent).collect();
-        v.sort_by(|a, b| a.name.expose().to_lowercase().cmp(&b.name.expose().to_lowercase()));
+        v.sort_by(|a, b| {
+            a.name
+                .expose()
+                .to_lowercase()
+                .cmp(&b.name.expose().to_lowercase())
+        });
         v
     }
 
@@ -313,8 +320,15 @@ impl Vault {
 
     /// Total history entries across live documents and trash.
     pub fn total_history_entries(&self) -> usize {
-        self.documents.iter().map(|d| d.history.len()).sum::<usize>()
-            + self.trash.iter().map(|t| t.document.history.len()).sum::<usize>()
+        self.documents
+            .iter()
+            .map(|d| d.history.len())
+            .sum::<usize>()
+            + self
+                .trash
+                .iter()
+                .map(|t| t.document.history.len())
+                .sum::<usize>()
     }
 
     /// Approximate decrypted payload size (for warnings before saving).
@@ -334,7 +348,8 @@ impl Vault {
         }
         validate_name(title)?;
         if let Some(f) = folder {
-            self.folder(f).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+            self.folder(f)
+                .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
         }
         let doc = Document::new(title, folder);
         let id = doc.id;
@@ -359,7 +374,9 @@ impl Vault {
     /// Renames a document.
     pub fn rename_document(&mut self, id: DocId, title: &str) -> VaultResult<()> {
         validate_name(title)?;
-        let d = self.document_mut(id).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+        let d = self
+            .document_mut(id)
+            .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
         d.title.set(title);
         d.updated_at = now_unix();
         Ok(())
@@ -368,9 +385,12 @@ impl Vault {
     /// Moves a document to a folder (or the root).
     pub fn move_document(&mut self, id: DocId, folder: Option<FolderId>) -> VaultResult<()> {
         if let Some(f) = folder {
-            self.folder(f).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+            self.folder(f)
+                .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
         }
-        let d = self.document_mut(id).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+        let d = self
+            .document_mut(id)
+            .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
         d.folder = folder;
         Ok(())
     }
@@ -390,7 +410,9 @@ impl Vault {
         if clean.len() > limits::MAX_TAGS_PER_DOCUMENT {
             return Err(VaultError::new(ErrorCode::TooManyItems));
         }
-        let d = self.document_mut(id).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+        let d = self
+            .document_mut(id)
+            .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
         d.tags = clean;
         Ok(())
     }
@@ -477,7 +499,11 @@ impl Vault {
             return Err(VaultError::new(ErrorCode::InvalidName));
         }
         let depth = match parent {
-            Some(p) => self.folder_depth(p).ok_or(VaultError::new(ErrorCode::NoSuchItem))? + 1,
+            Some(p) => {
+                self.folder_depth(p)
+                    .ok_or(VaultError::new(ErrorCode::NoSuchItem))?
+                    + 1
+            }
             None => 1,
         };
         if depth > limits::MAX_FOLDER_DEPTH {
@@ -511,7 +537,8 @@ impl Vault {
     /// Deletes an empty folder (no documents and no subfolders). Trashed
     /// documents that lived in it will be restored to the root.
     pub fn delete_folder(&mut self, id: FolderId) -> VaultResult<()> {
-        self.folder(id).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+        self.folder(id)
+            .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
         let has_docs = self.documents.iter().any(|d| d.folder == Some(id));
         let has_children = self.folders.iter().any(|f| f.parent == Some(id));
         if has_docs || has_children {
@@ -532,8 +559,12 @@ impl Vault {
     /// The previous content remains in history; the restored state becomes a
     /// new revision on the next save.
     pub fn restore_history_entry(&mut self, doc: DocId, entry: HistoryId) -> VaultResult<()> {
-        let d = self.document_mut(doc).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
-        let h = d.history_entry(entry).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+        let d = self
+            .document_mut(doc)
+            .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+        let h = d
+            .history_entry(entry)
+            .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
         let title = h.title.duplicate();
         let text = h.text.duplicate();
         d.title = title;
@@ -545,7 +576,9 @@ impl Vault {
 
     /// Removes all history entries of a document except the most recent.
     pub fn purge_history(&mut self, doc: DocId) -> VaultResult<usize> {
-        let d = self.document_mut(doc).ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
+        let d = self
+            .document_mut(doc)
+            .ok_or(VaultError::new(ErrorCode::NoSuchItem))?;
         let n = d.history.len().saturating_sub(1);
         if n > 0 {
             d.history.drain(..n);
@@ -572,7 +605,9 @@ pub fn validate_name(name: &str) -> VaultResult<()> {
 pub fn validate_tag(tag: &str) -> VaultResult<()> {
     if tag.is_empty()
         || tag.len() > limits::MAX_TAG_BYTES
-        || tag.chars().any(|c| c.is_control() || c.is_whitespace() || c == ',')
+        || tag
+            .chars()
+            .any(|c| c.is_control() || c.is_whitespace() || c == ',')
     {
         return Err(VaultError::new(ErrorCode::InvalidName));
     }
@@ -611,7 +646,10 @@ mod tests {
         assert!(v.folder_is_within(b, a));
         assert!(v.create_folder("", None).is_err());
         assert!(v.create_folder("bad\nname", None).is_err());
-        assert_eq!(v.delete_folder(a).unwrap_err().code(), ErrorCode::FolderNotEmpty);
+        assert_eq!(
+            v.delete_folder(a).unwrap_err().code(),
+            ErrorCode::FolderNotEmpty
+        );
         v.delete_folder(b).unwrap();
         v.delete_folder(a).unwrap();
         assert!(v.folders.is_empty());

@@ -39,7 +39,8 @@ impl DataDirs {
         if let Some(p) = std::env::var_os(DATA_DIR_ENV).filter(|p| !p.is_empty()) {
             return Ok(Self::at(PathBuf::from(p)));
         }
-        let base = platform_base().ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "no home"))?;
+        let base =
+            platform_base().ok_or_else(|| io::Error::new(io::ErrorKind::NotFound, "no home"))?;
         let name = if cfg!(debug_assertions) {
             format!("{}-dev", dir_name())
         } else {
@@ -105,7 +106,10 @@ pub fn create_private_dir_all(path: &Path) -> io::Result<()> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::DirBuilderExt;
-        fs::DirBuilder::new().recursive(true).mode(0o700).create(path)
+        fs::DirBuilder::new()
+            .recursive(true)
+            .mode(0o700)
+            .create(path)
     }
     #[cfg(not(unix))]
     {

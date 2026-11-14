@@ -145,7 +145,11 @@ impl SaveJob {
 
     /// Writes the job's payload as an encrypted *unsaved-changes* recovery
     /// copy instead of the vault file (used when locking after a failed save).
-    pub fn run_as_recovery_copy(self, recovery_root: &Path, vault_id: VaultId) -> VaultResult<PathBuf> {
+    pub fn run_as_recovery_copy(
+        self,
+        recovery_root: &Path,
+        vault_id: VaultId,
+    ) -> VaultResult<PathBuf> {
         let ciphertext = crypto::encrypt(&self.passphrase, self.work, &self.plaintext)?;
         RecoveryStore::for_vault(recovery_root, vault_id).store(RecoveryKind::Unsaved, &ciphertext)
     }
@@ -153,7 +157,12 @@ impl SaveJob {
 
 impl Session {
     /// Creates a new vault file at `path` (which must not exist) and opens it.
-    pub fn create(path: &Path, passphrase: Passphrase, vault: Vault, opts: SessionOptions) -> VaultResult<Self> {
+    pub fn create(
+        path: &Path,
+        passphrase: Passphrase,
+        vault: Vault,
+        opts: SessionOptions,
+    ) -> VaultResult<Self> {
         if passphrase.is_empty() {
             return Err(VaultError::new(ErrorCode::PassphraseEmpty));
         }

@@ -84,7 +84,8 @@ impl SecretText {
     /// would otherwise be required.
     pub fn set(&mut self, value: &str) {
         if value.len() > self.inner.capacity() {
-            let mut fresh = String::with_capacity(grown_capacity(self.inner.capacity(), value.len()));
+            let mut fresh =
+                String::with_capacity(grown_capacity(self.inner.capacity(), value.len()));
             fresh.push_str(value);
             let mut old = std::mem::replace(&mut self.inner, fresh);
             old.zeroize();

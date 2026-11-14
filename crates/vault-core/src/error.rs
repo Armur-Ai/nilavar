@@ -175,17 +175,33 @@ impl ErrorCode {
             WrongPassphraseOrNotAVault => {
                 "The passphrase is incorrect, or this file is not a vault that can be opened with a passphrase."
             }
-            InvalidHeader => "The file is not a valid encrypted vault (the header is malformed or truncated).",
-            HeaderTampered => "The vault header failed authentication. The file is corrupted or was modified.",
-            BodyTampered => "The encrypted contents failed authentication. The file is corrupted or was modified.",
+            InvalidHeader => {
+                "The file is not a valid encrypted vault (the header is malformed or truncated)."
+            }
+            HeaderTampered => {
+                "The vault header failed authentication. The file is corrupted or was modified."
+            }
+            BodyTampered => {
+                "The encrypted contents failed authentication. The file is corrupted or was modified."
+            }
             Truncated => "The encrypted file ends early. It may be incomplete or still syncing.",
-            NotPassphraseEncrypted => "This age file is encrypted to keys, not to a passphrase, and cannot be opened here.",
-            UnknownAgeFormat => "This file uses an encryption format version this build does not support.",
-            ExcessiveWorkFactor => "The file demands an unreasonably expensive passphrase check and was rejected.",
+            NotPassphraseEncrypted => {
+                "This age file is encrypted to keys, not to a passphrase, and cannot be opened here."
+            }
+            UnknownAgeFormat => {
+                "This file uses an encryption format version this build does not support."
+            }
+            ExcessiveWorkFactor => {
+                "The file demands an unreasonably expensive passphrase check and was rejected."
+            }
             EncryptedInputTooLarge => "The encrypted file is larger than this build accepts.",
             PayloadTooLarge => "The decrypted vault is larger than this build accepts.",
-            MalformedPayload => "The vault decrypted, but its contents are not in the expected format.",
-            UnsupportedSchema => "The vault was written by an incompatible version. It was not modified.",
+            MalformedPayload => {
+                "The vault decrypted, but its contents are not in the expected format."
+            }
+            UnsupportedSchema => {
+                "The vault was written by an incompatible version. It was not modified."
+            }
             ExcessiveNesting => "The vault contents are nested too deeply.",
             DuplicateId => "The vault contents contain duplicate identifiers.",
             InvalidId => "The vault contents contain a malformed identifier.",
@@ -196,9 +212,15 @@ impl ErrorCode {
             InvalidName => "A name, title or tag is too long or contains forbidden characters.",
             TooManyItems => "The vault contains more items than this build allows.",
             ReadFailed => "The file could not be read.",
-            WriteFailed => "Writing the encrypted file failed. The previous vault file is unchanged.",
-            FlushFailed => "Flushing the encrypted file to disk failed. The previous vault file is unchanged.",
-            ReplaceFailed => "Replacing the vault file failed. The previous vault file is unchanged.",
+            WriteFailed => {
+                "Writing the encrypted file failed. The previous vault file is unchanged."
+            }
+            FlushFailed => {
+                "Flushing the encrypted file to disk failed. The previous vault file is unchanged."
+            }
+            ReplaceFailed => {
+                "Replacing the vault file failed. The previous vault file is unchanged."
+            }
             DiskFull => "The disk is full. The previous vault file is unchanged.",
             PermissionDenied => "Permission was denied for this location.",
             UnexpectedSymlink => "The location is a symbolic link. For safety it was not followed.",
@@ -298,7 +320,10 @@ pub struct VaultError {
 impl VaultError {
     /// Creates an error from a code.
     pub const fn new(code: ErrorCode) -> Self {
-        Self { code, io_kind: None }
+        Self {
+            code,
+            io_kind: None,
+        }
     }
 
     /// Maps an I/O error to a storage code, keeping only its kind.

@@ -67,14 +67,23 @@ pub fn document_from_bytes(title: &str, bytes: &[u8], markdown: bool) -> VaultRe
     }
     let mut doc = Document::new(&title, None);
     doc.text = SecretText::from(text);
-    doc.mode = if markdown { DocMode::Markdown } else { DocMode::Plain };
+    doc.mode = if markdown {
+        DocMode::Markdown
+    } else {
+        DocMode::Plain
+    };
     Ok(doc)
 }
 
 /// Exports a document's text as a standalone age passphrase-encrypted file.
 /// Replaces a regular file at `dest` (the caller confirms overwrite); never
 /// follows symlinks.
-pub fn export_encrypted(text: &SecretText, dest: &Path, passphrase: &Passphrase, work: WorkFactor) -> VaultResult<()> {
+pub fn export_encrypted(
+    text: &SecretText,
+    dest: &Path,
+    passphrase: &Passphrase,
+    work: WorkFactor,
+) -> VaultResult<()> {
     if passphrase.is_empty() {
         return Err(VaultError::new(ErrorCode::PassphraseEmpty));
     }
@@ -96,16 +105,24 @@ pub const PLAINTEXT_CONFIRM_PHRASE: &str = "export plaintext";
 /// Confirms a plaintext export of `dest`. `acknowledged` must be the result
 /// of an explicit user action (a dedicated dialog checkbox + button, or the
 /// typed phrase in the CLI) that showed the destination.
-pub fn confirm_plaintext_export(dest: &Path, acknowledged: bool) -> VaultResult<PlaintextExportConfirmation> {
+pub fn confirm_plaintext_export(
+    dest: &Path,
+    acknowledged: bool,
+) -> VaultResult<PlaintextExportConfirmation> {
     if !acknowledged {
         return Err(VaultError::new(ErrorCode::PlaintextExportNotConfirmed));
     }
-    Ok(PlaintextExportConfirmation { dest: dest.to_path_buf() })
+    Ok(PlaintextExportConfirmation {
+        dest: dest.to_path_buf(),
+    })
 }
 
 /// Writes plaintext to the confirmed destination. The confirmation is
 /// consumed and only valid for the exact path it names.
-pub fn export_plaintext(text: &SecretText, confirmation: PlaintextExportConfirmation) -> VaultResult<PathBuf> {
+pub fn export_plaintext(
+    text: &SecretText,
+    confirmation: PlaintextExportConfirmation,
+) -> VaultResult<PathBuf> {
     let dest = confirmation.dest;
     storage::write_atomic(&dest, text.expose().as_bytes(), None, Faults::NONE)?;
     Ok(dest)
@@ -121,7 +138,10 @@ pub fn import_encrypted_text(path: &Path, passphrase: &Passphrase) -> VaultResul
         .map(|s| s.to_string_lossy().into_owned())
         .unwrap_or_default();
     let title = name.strip_suffix(".age").unwrap_or(&name);
-    let title = title.strip_suffix(".txt").or_else(|| title.strip_suffix(".md")).unwrap_or(title);
+    let title = title
+        .strip_suffix(".txt")
+        .or_else(|| title.strip_suffix(".md"))
+        .unwrap_or(title);
     document_from_bytes(title, &plain, true)
 }
 
@@ -129,7 +149,13 @@ pub fn import_encrypted_text(path: &Path, passphrase: &Passphrase) -> VaultResul
 pub fn suggested_filename(title: &str, extension: &str) -> String {
     let mut s: String = title
         .chars()
-        .map(|c| if c.is_alphanumeric() || c == '-' || c == '_' || c == ' ' { c } else { '_' })
+        .map(|c| {
+            if c.is_alphanumeric() || c == '-' || c == '_' || c == ' ' {
+                c
+            } else {
+                '_'
+            }
+        })
         .collect();
     s = s.trim().to_owned();
     if s.is_empty() {
@@ -153,15 +179,24 @@ mod tests {
         assert_eq!(d.text.expose(), "# Héllo\r\nworld");
         assert_eq!(d.mode, DocMode::Markdown);
         // Original untouched.
-        assert_eq!(std::fs::read(&ok).unwrap().len(), "\u{feff}# Héllo\r\nworld".len());
+        assert_eq!(
+            std::fs::read(&ok).unwrap().len(),
+            "\u{feff}# Héllo\r\nworld".len()
+        );
 
         let bad = dir.path().join("bin.txt");
         std::fs::write(&bad, [0xffu8, 0xfe, 0x00]).unwrap();
-        assert_eq!(import_text_file(&bad).unwrap_err().code(), ErrorCode::ImportNotUtf8);
+        assert_eq!(
+            import_text_file(&bad).unwrap_err().code(),
+            ErrorCode::ImportNotUtf8
+        );
 
         let big = dir.path().join("big.txt");
         std::fs::write(&big, vec![b'a'; limits::MAX_IMPORT_BYTES + 1]).unwrap();
-        assert_eq!(import_text_file(&big).unwrap_err().code(), ErrorCode::ImportTooLarge);
+        assert_eq!(
+            import_text_file(&big).unwrap_err().code(),
+            ErrorCode::ImportTooLarge
+        );
     }
 
     #[test]
@@ -183,7 +218,13 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let dest = dir.path().join("doc.txt.age");
         let pass = Passphrase::from("export pass");
-        export_encrypted(&SecretText::from("ünïcode body"), &dest, &pass, WorkFactor::TESTING).unwrap();
+        export_encrypted(
+            &SecretText::from("ünïcode body"),
+            &dest,
+            &pass,
+            WorkFactor::TESTING,
+        )
+        .unwrap();
         let back = import_encrypted_text(&dest, &pass).unwrap();
         assert_eq!(back.text.expose(), "ünïcode body");
         assert_eq!(back.title.expose(), "doc");
@@ -191,7 +232,10 @@ mod tests {
 
     #[test]
     fn filename_suggestions_are_safe() {
-        assert_eq!(suggested_filename("../../etc/passwd", "txt"), "______etc_passwd.txt");
+        assert_eq!(
+            suggested_filename("../../etc/passwd", "txt"),
+            "______etc_passwd.txt"
+        );
         assert_eq!(suggested_filename("   ", "md"), "document.md");
     }
 }

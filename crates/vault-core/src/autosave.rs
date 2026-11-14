@@ -91,7 +91,10 @@ impl Autosave {
     /// Time until the next check is useful (for scheduling a repaint).
     pub fn next_check_in(&self, now: Instant) -> Option<Duration> {
         let last = self.last_edit?;
-        let quiet_left = self.policy.quiet.saturating_sub(now.saturating_duration_since(last));
+        let quiet_left = self
+            .policy
+            .quiet
+            .saturating_sub(now.saturating_duration_since(last));
         Some(quiet_left.max(Duration::from_millis(200)))
     }
 }
@@ -109,7 +112,10 @@ mod tests {
         a.on_edit(t0);
         assert!(!a.due(t0 + Duration::from_secs(1), false, true));
         assert!(a.due(t0 + p.quiet, false, true));
-        assert!(!a.due(t0 + p.quiet, true, true), "never two saves in flight");
+        assert!(
+            !a.due(t0 + p.quiet, true, true),
+            "never two saves in flight"
+        );
         assert!(!a.due(t0 + p.quiet, false, false), "disabled");
         // Continuous typing: due at max_delay even without a quiet gap.
         let mut b = Autosave::new(p);

@@ -17,8 +17,8 @@ use crate::error::{ErrorCode, VaultError, VaultResult};
 use crate::ids::{DocId, FolderId, HistoryId, RevisionId, VaultId};
 use crate::limits;
 use crate::model::{
-    validate_name, validate_tag, DocMode, Document, Folder, HistoryEntry, HistoryKind, TrashEntry, Vault,
-    VaultPrefs, SCHEMA_VERSION,
+    DocMode, Document, Folder, HistoryEntry, HistoryKind, SCHEMA_VERSION, TrashEntry, Vault,
+    VaultPrefs, validate_name, validate_tag,
 };
 use crate::secret::SecretText;
 
@@ -167,7 +167,9 @@ impl io::Write for ZeroizingSink {
             return Err(io::Error::other("payload limit"));
         }
         if needed > self.buf.capacity() {
-            let cap = needed.max(self.buf.capacity().saturating_mul(2)).min(self.limit);
+            let cap = needed
+                .max(self.buf.capacity().saturating_mul(2))
+                .min(self.limit);
             let mut fresh = Vec::with_capacity(cap);
             fresh.extend_from_slice(&self.buf);
             // Dropping the old Zeroizing buffer wipes it.
@@ -418,7 +420,11 @@ pub fn decode(bytes: &[u8]) -> VaultResult<Vault> {
     let vault = Vault {
         vault_id: VaultId::parse(&de.vault_id)?,
         revision_id: RevisionId::parse(&de.revision_id)?,
-        parent_revision_id: de.parent_revision_id.as_deref().map(RevisionId::parse).transpose()?,
+        parent_revision_id: de
+            .parent_revision_id
+            .as_deref()
+            .map(RevisionId::parse)
+            .transpose()?,
         save_counter: de.save_counter,
         created_at: de.created_at,
         saved_at: de.saved_at,
@@ -438,7 +444,9 @@ pub fn decode(bytes: &[u8]) -> VaultResult<Vault> {
 }
 
 fn convert_doc(d: &mut DeDoc) -> VaultResult<Document> {
-    if d.tags.len() > limits::MAX_TAGS_PER_DOCUMENT || d.history.len() > limits::MAX_REVISIONS_PER_DOCUMENT {
+    if d.tags.len() > limits::MAX_TAGS_PER_DOCUMENT
+        || d.history.len() > limits::MAX_REVISIONS_PER_DOCUMENT
+    {
         return Err(VaultError::new(ErrorCode::TooManyItems));
     }
     let history = d
@@ -585,7 +593,10 @@ mod tests {
         let mut v = Vault::new();
         let f = v.create_folder("Földer ✓", None).unwrap();
         let d = v.create_document("Tïtle 🔐", Some(f)).unwrap();
-        v.document_mut(d).unwrap().text.set("línea 1\n\"quoted\" \\ back\n\u{0}nul\n");
+        v.document_mut(d)
+            .unwrap()
+            .text
+            .set("línea 1\n\"quoted\" \\ back\n\u{0}nul\n");
         v.set_tags(d, &["ключ", "api"]).unwrap();
         crate::history::record_save(&mut v, 1, crate::history::SaveTrigger::Explicit).unwrap();
         let e = v.create_document("", None).unwrap();
@@ -617,11 +628,23 @@ mod tests {
         let bytes = encode(&v).unwrap();
         let s = std::str::from_utf8(&bytes).unwrap();
         let newer = s.replace("\"schema_version\":1", "\"schema_version\":2");
-        assert_eq!(decode(newer.as_bytes()).unwrap_err().code(), ErrorCode::UnsupportedSchema);
+        assert_eq!(
+            decode(newer.as_bytes()).unwrap_err().code(),
+            ErrorCode::UnsupportedSchema
+        );
         let extra = s.replacen('{', "{\"surprise\":true,", 1);
-        assert_eq!(decode(extra.as_bytes()).unwrap_err().code(), ErrorCode::MalformedPayload);
-        assert_eq!(decode(b"{}").unwrap_err().code(), ErrorCode::MalformedPayload);
-        assert_eq!(decode(b"\xff\xfe").unwrap_err().code(), ErrorCode::MalformedPayload);
+        assert_eq!(
+            decode(extra.as_bytes()).unwrap_err().code(),
+            ErrorCode::MalformedPayload
+        );
+        assert_eq!(
+            decode(b"{}").unwrap_err().code(),
+            ErrorCode::MalformedPayload
+        );
+        assert_eq!(
+            decode(b"\xff\xfe").unwrap_err().code(),
+            ErrorCode::MalformedPayload
+        );
     }
 
     #[test]
@@ -633,7 +656,10 @@ mod tests {
 
         let mut v = sample();
         v.documents[0].folder = Some(FolderId::random());
-        assert_eq!(validate(&v).unwrap_err().code(), ErrorCode::DanglingReference);
+        assert_eq!(
+            validate(&v).unwrap_err().code(),
+            ErrorCode::DanglingReference
+        );
 
         let mut v = sample();
         let a = v.folders[0].id;
@@ -645,7 +671,10 @@ mod tests {
     #[test]
     fn rejects_deep_nesting_before_parsing() {
         let deep = "[".repeat(limits::MAX_JSON_DEPTH + 1);
-        assert_eq!(decode(deep.as_bytes()).unwrap_err().code(), ErrorCode::ExcessiveNesting);
+        assert_eq!(
+            decode(deep.as_bytes()).unwrap_err().code(),
+            ErrorCode::ExcessiveNesting
+        );
         // Brackets inside strings don't count.
         assert!(check_nesting(b"{\"a\":\"[[[[[[[[[[[[[[[[[[[[[[[[\"}", 2).is_ok());
     }
@@ -670,7 +699,10 @@ mod tests {
             let d = v.create_document(&format!("d{i}"), None).unwrap();
             v.document_mut(d).unwrap().text.set(&big);
         }
-        assert_eq!(encode(&v).unwrap_err().code(), ErrorCode::SaveWouldExceedLimit);
+        assert_eq!(
+            encode(&v).unwrap_err().code(),
+            ErrorCode::SaveWouldExceedLimit
+        );
         assert_eq!(v.documents.len(), 17);
     }
 }

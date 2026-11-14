@@ -71,7 +71,12 @@ impl LockState {
             (S::Unlocked | S::Saving, E::BeginLock) => S::Locking,
             (S::Locking, E::SaveFinished) => S::Locking,
             (S::Locking, E::LockFinished { workers_idle: true }) => S::Locked,
-            (S::Locking, E::LockFinished { workers_idle: false }) => S::Locking,
+            (
+                S::Locking,
+                E::LockFinished {
+                    workers_idle: false,
+                },
+            ) => S::Locking,
             _ => return Err(VaultError::new(ErrorCode::Internal)),
         };
         Ok(next)
@@ -101,7 +106,10 @@ pub enum AutoLockOutcome {
 impl AutoLockOutcome {
     /// Whether the user must be told about lost or diverted changes on next unlock.
     pub fn needs_notice(self) -> bool {
-        matches!(self, AutoLockOutcome::RecoveryCopy(_) | AutoLockOutcome::Discarded(_))
+        matches!(
+            self,
+            AutoLockOutcome::RecoveryCopy(_) | AutoLockOutcome::Discarded(_)
+        )
     }
 }
 
@@ -143,9 +151,20 @@ mod tests {
         assert!(!s.shows_workspace());
         let s = s.apply(E::SaveFinished).unwrap();
         assert_eq!(s, S::Locking);
-        let s = s.apply(E::LockFinished { workers_idle: false }).unwrap();
-        assert_eq!(s, S::Locking, "never report locked while workers hold secrets");
-        assert_eq!(s.apply(E::LockFinished { workers_idle: true }).unwrap(), S::Locked);
+        let s = s
+            .apply(E::LockFinished {
+                workers_idle: false,
+            })
+            .unwrap();
+        assert_eq!(
+            s,
+            S::Locking,
+            "never report locked while workers hold secrets"
+        );
+        assert_eq!(
+            s.apply(E::LockFinished { workers_idle: true }).unwrap(),
+            S::Locked
+        );
     }
 
     #[test]
@@ -154,6 +173,10 @@ mod tests {
         assert!(S::Locked.apply(E::UnlockSucceeded).is_err());
         assert!(S::Unlocking.apply(E::BeginLock).is_err());
         assert!(S::Locking.apply(E::BeginUnlock).is_err());
-        assert!(S::Unlocked.apply(E::LockFinished { workers_idle: true }).is_err());
+        assert!(
+            S::Unlocked
+                .apply(E::LockFinished { workers_idle: true })
+                .is_err()
+        );
     }
 }

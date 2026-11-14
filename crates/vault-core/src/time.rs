@@ -16,7 +16,11 @@ pub fn format_utc(ts: i64) -> String {
     let days = ts.div_euclid(86_400);
     let secs = ts.rem_euclid(86_400);
     let (y, m, d) = civil_from_days(days);
-    format!("{y:04}-{m:02}-{d:02} {:02}:{:02} UTC", secs / 3600, (secs % 3600) / 60)
+    format!(
+        "{y:04}-{m:02}-{d:02} {:02}:{:02} UTC",
+        secs / 3600,
+        (secs % 3600) / 60
+    )
 }
 
 /// Formats a Unix timestamp compactly for filenames: `YYYYMMDD-HHMMSS`.

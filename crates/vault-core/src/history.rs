@@ -94,7 +94,10 @@ pub fn record_document(doc: &mut Document, now: i64, trigger: SaveTrigger) -> bo
         text: doc.text.duplicate(),
     });
     doc.restore_pending = false;
-    let excess = doc.history.len().saturating_sub(limits::MAX_REVISIONS_PER_DOCUMENT);
+    let excess = doc
+        .history
+        .len()
+        .saturating_sub(limits::MAX_REVISIONS_PER_DOCUMENT);
     if excess > 0 {
         doc.history.drain(..excess);
     }
@@ -245,6 +248,10 @@ mod tests {
         let b = SecretText::from("one\n2\nthree\nfour\n");
         let lines = diff_lines(&a, &b);
         assert_eq!(diff_stats(&lines), (2, 1));
-        assert!(lines.iter().any(|l| l.kind == DiffKind::Removed && l.text.as_str() == "two"));
+        assert!(
+            lines
+                .iter()
+                .any(|l| l.kind == DiffKind::Removed && l.text.as_str() == "two")
+        );
     }
 }

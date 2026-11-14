@@ -20,7 +20,7 @@ use std::path::{Path, PathBuf};
 use sha2::{Digest, Sha256};
 
 use crate::error::{ErrorCode, VaultError, VaultResult};
-use crate::ids::{random_bytes, VaultId};
+use crate::ids::{VaultId, random_bytes};
 use crate::limits;
 use crate::paths::create_private_dir_all;
 use crate::time::{format_compact, now_unix};
@@ -212,7 +212,9 @@ fn verify_unchanged(dest: &Path, exists: bool, fp: Fingerprint) -> VaultResult<(
         return Err(VaultError::new(ErrorCode::ConflictDetected));
     }
     let current = read_bounded(dest, limits::MAX_ENCRYPTED_BYTES).map_err(|e| match e.code() {
-        ErrorCode::EncryptedInputTooLarge | ErrorCode::NotFound => VaultError::new(ErrorCode::ConflictDetected),
+        ErrorCode::EncryptedInputTooLarge | ErrorCode::NotFound => {
+            VaultError::new(ErrorCode::ConflictDetected)
+        }
         _ => e,
     })?;
     if Fingerprint::of(&current) != fp {
@@ -240,7 +242,8 @@ fn write_temp(tmp: &Path, bytes: &[u8], faults: Faults) -> VaultResult<()> {
         .check(FaultPoint::Flush)
         .map_err(|e| VaultError::io(ErrorCode::FlushFailed, &e))?;
     // On Apple platforms std's sync_all issues F_FULLFSYNC.
-    f.sync_all().map_err(|e| VaultError::io(ErrorCode::FlushFailed, &e))?;
+    f.sync_all()
+        .map_err(|e| VaultError::io(ErrorCode::FlushFailed, &e))?;
     Ok(())
 }
 
@@ -367,7 +370,8 @@ impl RecoveryStore {
 
     /// Writes an encrypted copy, then prunes to the retention limit.
     pub fn store(&self, kind: RecoveryKind, ciphertext: &[u8]) -> VaultResult<PathBuf> {
-        create_private_dir_all(&self.dir).map_err(|e| VaultError::io(ErrorCode::WriteFailed, &e))?;
+        create_private_dir_all(&self.dir)
+            .map_err(|e| VaultError::io(ErrorCode::WriteFailed, &e))?;
         let r: [u8; 3] = random_bytes();
         let name = format!(
             "{}{}-{:02x}{:02x}{:02x}.nvault.age",
@@ -416,7 +420,12 @@ impl RecoveryStore {
     }
 
     fn prune(&self, kind: RecoveryKind, keep: usize) {
-        for old in self.list().into_iter().filter(|c| c.kind == kind).skip(keep) {
+        for old in self
+            .list()
+            .into_iter()
+            .filter(|c| c.kind == kind)
+            .skip(keep)
+        {
             let _ = fs::remove_file(old.path);
         }
     }
@@ -451,7 +460,8 @@ impl SessionLock {
     /// Acquires the lock for `vault_path`, failing with
     /// [`ErrorCode::VaultInUse`] if another cooperating instance holds it.
     pub fn acquire(locks_dir: &Path, vault_path: &Path) -> VaultResult<Self> {
-        create_private_dir_all(locks_dir).map_err(|e| VaultError::io(ErrorCode::WriteFailed, &e))?;
+        create_private_dir_all(locks_dir)
+            .map_err(|e| VaultError::io(ErrorCode::WriteFailed, &e))?;
         let canonical = fs::canonicalize(vault_path).unwrap_or_else(|_| vault_path.to_path_buf());
         let mut h = Sha256::new();
         h.update(b"nilavar-lock-v1");
@@ -502,18 +512,31 @@ mod tests {
         #[cfg(unix)]
         {
             use std::os::unix::fs::PermissionsExt;
-            assert_eq!(fs::metadata(&p).unwrap().permissions().mode() & 0o777, 0o600);
+            assert_eq!(
+                fs::metadata(&p).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
         }
     }
 
     #[test]
     fn every_fault_preserves_previous_file_and_cleans_temp() {
-        for at in [FaultPoint::CreateTemp, FaultPoint::Write, FaultPoint::Flush, FaultPoint::Replace] {
+        for at in [
+            FaultPoint::CreateTemp,
+            FaultPoint::Write,
+            FaultPoint::Flush,
+            FaultPoint::Replace,
+        ] {
             let dir = tempfile::tempdir().unwrap();
             let p = dir.path().join("v.nvault.age");
             write_atomic(&p, b"good", None, Faults::NONE).unwrap();
-            let err = write_atomic(&p, b"new contents", Some(Fingerprint::of(b"good")), Faults { fail_at: Some(at) })
-                .unwrap_err();
+            let err = write_atomic(
+                &p,
+                b"new contents",
+                Some(Fingerprint::of(b"good")),
+                Faults { fail_at: Some(at) },
+            )
+            .unwrap_err();
             assert_ne!(err.code(), ErrorCode::Internal);
             assert_eq!(fs::read(&p).unwrap(), b"good", "fault at {at:?}");
             let leftovers: Vec<_> = fs::read_dir(dir.path()).unwrap().flatten().collect();
@@ -530,10 +553,15 @@ mod tests {
         let link = dir.path().join("link.nvault.age");
         std::os::unix::fs::symlink(&real, &link).unwrap();
         assert_eq!(
-            write_atomic(&link, b"y", None, Faults::NONE).unwrap_err().code(),
+            write_atomic(&link, b"y", None, Faults::NONE)
+                .unwrap_err()
+                .code(),
             ErrorCode::UnexpectedSymlink
         );
-        assert_eq!(read_bounded(&link, 10).unwrap_err().code(), ErrorCode::UnexpectedSymlink);
+        assert_eq!(
+            read_bounded(&link, 10).unwrap_err().code(),
+            ErrorCode::UnexpectedSymlink
+        );
         assert_eq!(fs::read(&real).unwrap(), b"x");
     }
 
@@ -542,7 +570,10 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let p = dir.path().join("n");
         write_new(&p, b"a", Faults::NONE).unwrap();
-        assert_eq!(write_new(&p, b"b", Faults::NONE).unwrap_err().code(), ErrorCode::AlreadyExists);
+        assert_eq!(
+            write_new(&p, b"b", Faults::NONE).unwrap_err().code(),
+            ErrorCode::AlreadyExists
+        );
         assert_eq!(fs::read(&p).unwrap(), b"a");
     }
 
@@ -551,7 +582,10 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let p = dir.path().join("f");
         fs::write(&p, vec![0u8; 100]).unwrap();
-        assert_eq!(read_bounded(&p, 99).unwrap_err().code(), ErrorCode::EncryptedInputTooLarge);
+        assert_eq!(
+            read_bounded(&p, 99).unwrap_err().code(),
+            ErrorCode::EncryptedInputTooLarge
+        );
         assert_eq!(read_bounded(&p, 100).unwrap().len(), 100);
     }
 
@@ -560,15 +594,24 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let store = RecoveryStore::for_vault(dir.path(), VaultId::random());
         for i in 0..(limits::RECOVERY_COPIES_KEPT + 3) {
-            store.store(RecoveryKind::LastKnownGood, &[i as u8]).unwrap();
+            store
+                .store(RecoveryKind::LastKnownGood, &[i as u8])
+                .unwrap();
         }
         store.store(RecoveryKind::Unsaved, b"u").unwrap();
         let all = store.list();
         assert_eq!(
-            all.iter().filter(|c| c.kind == RecoveryKind::LastKnownGood).count(),
+            all.iter()
+                .filter(|c| c.kind == RecoveryKind::LastKnownGood)
+                .count(),
             limits::RECOVERY_COPIES_KEPT
         );
-        assert_eq!(all.iter().filter(|c| c.kind == RecoveryKind::Unsaved).count(), 1);
+        assert_eq!(
+            all.iter()
+                .filter(|c| c.kind == RecoveryKind::Unsaved)
+                .count(),
+            1
+        );
         assert_eq!(store.purge_all(), limits::RECOVERY_COPIES_KEPT + 1);
     }
 

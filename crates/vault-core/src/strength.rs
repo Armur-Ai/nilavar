@@ -14,10 +14,43 @@ const WORDLIST: &str = include_str!("../data/eff_large_wordlist.words");
 /// A handful of very common passwords/patterns; matching any of them (case
 /// insensitive, ignoring trailing digits/symbols) caps the estimate.
 const COMMON: &[&str] = &[
-    "password", "passw0rd", "123456", "12345678", "123456789", "qwerty", "qwertyuiop", "abc123", "letmein",
-    "welcome", "monkey", "dragon", "iloveyou", "admin", "login", "master", "sunshine", "princess", "football",
-    "baseball", "shadow", "superman", "trustno1", "hello", "freedom", "whatever", "secret", "changeme", "default",
-    "asdfgh", "zxcvbn", "111111", "000000", "starwars", "matrix", "hunter2", "correcthorsebatterystaple",
+    "password",
+    "passw0rd",
+    "123456",
+    "12345678",
+    "123456789",
+    "qwerty",
+    "qwertyuiop",
+    "abc123",
+    "letmein",
+    "welcome",
+    "monkey",
+    "dragon",
+    "iloveyou",
+    "admin",
+    "login",
+    "master",
+    "sunshine",
+    "princess",
+    "football",
+    "baseball",
+    "shadow",
+    "superman",
+    "trustno1",
+    "hello",
+    "freedom",
+    "whatever",
+    "secret",
+    "changeme",
+    "default",
+    "asdfgh",
+    "zxcvbn",
+    "111111",
+    "000000",
+    "starwars",
+    "matrix",
+    "hunter2",
+    "correcthorsebatterystaple",
 ];
 
 /// Coarse rating bands.
@@ -71,12 +104,16 @@ impl Hint {
     /// Fixed explanatory text.
     pub fn text(self) -> &'static str {
         match self {
-            Hint::Short => "Shorter than 12 characters. Longer passphrases are much harder to guess.",
+            Hint::Short => {
+                "Shorter than 12 characters. Longer passphrases are much harder to guess."
+            }
             Hint::Common => "Resembles a very common password. Attackers try these first.",
             Hint::Sequence => "Contains a predictable sequence (like abc, 123 or qwerty).",
             Hint::Repeats => "Contains repeated characters, which add little strength.",
             Hint::SingleClass => "Uses only one kind of character.",
-            Hint::EdgeWhitespace => "Leading or trailing spaces are part of the passphrase and are kept exactly.",
+            Hint::EdgeWhitespace => {
+                "Leading or trailing spaces are part of the passphrase and are kept exactly."
+            }
             Hint::WordBased => "Estimated per word, assuming the words might be guessable choices.",
         }
     }
@@ -131,7 +168,8 @@ fn estimate_str(s: &str) -> Estimate {
         hints.push(Hint::EdgeWhitespace);
     }
 
-    let (mut lower, mut upper, mut digit, mut symbol, mut space, mut other) = (false, false, false, false, false, false);
+    let (mut lower, mut upper, mut digit, mut symbol, mut space, mut other) =
+        (false, false, false, false, false, false);
     for &c in &chars {
         if c.is_ascii_lowercase() {
             lower = true
@@ -147,12 +185,22 @@ fn estimate_str(s: &str) -> Estimate {
             other = true
         }
     }
-    let pool = [(lower, 26.0), (upper, 26.0), (digit, 10.0), (symbol, 33.0), (space, 1.0), (other, 100.0)]
+    let pool = [
+        (lower, 26.0),
+        (upper, 26.0),
+        (digit, 10.0),
+        (symbol, 33.0),
+        (space, 1.0),
+        (other, 100.0),
+    ]
+    .iter()
+    .filter(|(on, _)| *on)
+    .map(|(_, v)| v)
+    .sum::<f64>();
+    let classes = [lower, upper, digit, symbol, other]
         .iter()
-        .filter(|(on, _)| *on)
-        .map(|(_, v)| v)
-        .sum::<f64>();
-    let classes = [lower, upper, digit, symbol, other].iter().filter(|b| **b).count();
+        .filter(|b| **b)
+        .count();
     if classes <= 1 && n < 20 {
         hints.push(Hint::SingleClass);
     }
@@ -203,14 +251,20 @@ fn estimate_str(s: &str) -> Estimate {
     // Multi-word passphrases: estimate per word (~11 bits for human-chosen
     // words, ~12.9 for words drawn from the 7,776-word list).
     let words: Vec<&str> = s
-        .split(|c: char| c == ' ' || c == '-' || c == '_' || c == '.')
+        .split([' ', '-', '_', '.'])
         .filter(|w| !w.is_empty())
         .collect();
     let wordy = words.len() >= 3 && words.iter().all(|w| w.chars().count() >= 2);
     if wordy {
         let per_word: f64 = words
             .iter()
-            .map(|w| if in_wordlist(&w.to_lowercase()) { 12.9 } else { 11.0 })
+            .map(|w| {
+                if in_wordlist(&w.to_lowercase()) {
+                    12.9
+                } else {
+                    11.0
+                }
+            })
             .sum();
         bits = bits.min(per_word + 2.0);
         hints.push(Hint::WordBased);
@@ -235,7 +289,11 @@ fn estimate_str(s: &str) -> Estimate {
         b if b < 80.0 => Rating::Strong,
         _ => Rating::Excellent,
     };
-    Estimate { bits, rating, hints }
+    Estimate {
+        bits,
+        rating,
+        hints,
+    }
 }
 
 fn in_wordlist(w: &str) -> bool {
@@ -307,9 +365,21 @@ mod tests {
 
     #[test]
     fn weak_inputs_rate_weak() {
-        for p in ["password", "Password1!", "123456789", "aaaaaaaaaaaa", "qwerty123", "abcdefgh"] {
+        for p in [
+            "password",
+            "Password1!",
+            "123456789",
+            "aaaaaaaaaaaa",
+            "qwerty123",
+            "abcdefgh",
+        ] {
             let e = estimate_str(p);
-            assert!(e.rating <= Rating::Weak, "{p} rated {:?} ({} bits)", e.rating, e.bits);
+            assert!(
+                e.rating <= Rating::Weak,
+                "{p} rated {:?} ({} bits)",
+                e.rating,
+                e.bits
+            );
         }
         assert!(estimate_str("password").hints.contains(&Hint::Common));
     }

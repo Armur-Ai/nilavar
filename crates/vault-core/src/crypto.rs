@@ -64,8 +64,9 @@ pub fn encrypt_to<W: Write>(
 ) -> VaultResult<W> {
     let mut recipient = scrypt::Recipient::new(passphrase.to_age_secret());
     recipient.set_work_factor(work.log_n());
-    let encryptor = age::Encryptor::with_recipients(std::iter::once(&recipient as &dyn age::Recipient))
-        .map_err(|_| VaultError::new(ErrorCode::EncryptFailed))?;
+    let encryptor =
+        age::Encryptor::with_recipients(std::iter::once(&recipient as &dyn age::Recipient))
+            .map_err(|_| VaultError::new(ErrorCode::EncryptFailed))?;
     let mut writer = encryptor
         .wrap_output(out)
         .map_err(|e| VaultError::io(ErrorCode::WriteFailed, &e))?;
@@ -78,7 +79,11 @@ pub fn encrypt_to<W: Write>(
 }
 
 /// Encrypts into a new in-memory ciphertext buffer.
-pub fn encrypt(passphrase: &Passphrase, work: WorkFactor, plaintext: &[u8]) -> VaultResult<Vec<u8>> {
+pub fn encrypt(
+    passphrase: &Passphrase,
+    work: WorkFactor,
+    plaintext: &[u8],
+) -> VaultResult<Vec<u8>> {
     // Ciphertext is plaintext + header (~200 B) + 16 B tag per 64 KiB chunk.
     let cap = plaintext.len() + plaintext.len() / 4096 + 512;
     encrypt_to(passphrase, work, plaintext, Vec::with_capacity(cap))
@@ -214,7 +219,10 @@ mod tests {
     fn payload_bound_enforced() {
         let p = pw("p");
         let c = encrypt(&p, WorkFactor::TESTING, &[7u8; 1000]).unwrap();
-        assert_eq!(decrypt(&p, &c, 999).unwrap_err().code(), ErrorCode::PayloadTooLarge);
+        assert_eq!(
+            decrypt(&p, &c, 999).unwrap_err().code(),
+            ErrorCode::PayloadTooLarge
+        );
         assert_eq!(decrypt(&p, &c, 1000).unwrap().len(), 1000);
     }
 

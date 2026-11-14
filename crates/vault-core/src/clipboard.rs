@@ -72,7 +72,13 @@ impl ClipboardGuard {
     }
 
     /// Copies `text` and schedules clearing after `clear_after`.
-    pub fn copy(&mut self, backend: &mut dyn ClipboardBackend, text: &str, now: Instant, clear_after: Duration) -> bool {
+    pub fn copy(
+        &mut self,
+        backend: &mut dyn ClipboardBackend,
+        text: &str,
+        now: Instant,
+        clear_after: Duration,
+    ) -> bool {
         if !backend.write_text(text) {
             return false;
         }
@@ -90,7 +96,9 @@ impl ClipboardGuard {
 
     /// Time until the pending clear is due.
     pub fn due_in(&self, now: Instant) -> Option<Duration> {
-        self.pending.as_ref().map(|p| p.deadline.saturating_duration_since(now))
+        self.pending
+            .as_ref()
+            .map(|p| p.deadline.saturating_duration_since(now))
     }
 
     /// Clears the app's value if the deadline passed.
@@ -147,8 +155,14 @@ mod tests {
         let mut g = ClipboardGuard::default();
         let t0 = Instant::now();
         g.copy(&mut cb, "SYNTH-secret", t0, Duration::from_secs(30));
-        assert_eq!(g.tick(&mut cb, t0 + Duration::from_secs(29)), ClearOutcome::Nothing);
-        assert_eq!(g.tick(&mut cb, t0 + Duration::from_secs(30)), ClearOutcome::Cleared);
+        assert_eq!(
+            g.tick(&mut cb, t0 + Duration::from_secs(29)),
+            ClearOutcome::Nothing
+        );
+        assert_eq!(
+            g.tick(&mut cb, t0 + Duration::from_secs(30)),
+            ClearOutcome::Cleared
+        );
         assert_eq!(cb.value, None);
     }
 
@@ -159,7 +173,10 @@ mod tests {
         let t0 = Instant::now();
         g.copy(&mut cb, "SYNTH-secret", t0, Duration::from_secs(5));
         cb.value = Some("user copied something else".into());
-        assert_eq!(g.tick(&mut cb, t0 + Duration::from_secs(10)), ClearOutcome::LeftAlone);
+        assert_eq!(
+            g.tick(&mut cb, t0 + Duration::from_secs(10)),
+            ClearOutcome::LeftAlone
+        );
         assert_eq!(cb.value.as_deref(), Some("user copied something else"));
         assert!(!g.has_pending());
     }

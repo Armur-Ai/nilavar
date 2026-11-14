@@ -108,7 +108,10 @@ impl Diagnostics {
         if self.records.len() >= MAX_EVENTS {
             self.records.pop_front();
         }
-        self.records.push_back(Record { at: now_unix(), event });
+        self.records.push_back(Record {
+            at: now_unix(),
+            event,
+        });
     }
 
     /// Recorded events, oldest first.
@@ -176,7 +179,11 @@ impl DiagnosticReport {
             release: RELEASE_LABEL,
             os: std::env::consts::OS,
             arch: std::env::consts::ARCH,
-            build: if cfg!(debug_assertions) { "debug" } else { "release" },
+            build: if cfg!(debug_assertions) {
+                "debug"
+            } else {
+                "release"
+            },
             capabilities,
             events: diag.records().copied().collect(),
         }
