@@ -61,6 +61,7 @@ jobs:
   interop:
     name: age / rage interoperability
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,6 +70,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y age
           cargo install rage --locked --version 0.12.1
+          age --version; rage --version
       - name: Interop tests (required)
         env:
           NILAVAR_REQUIRE_INTEROP: "1"
