@@ -47,10 +47,14 @@ pub fn interop_required() -> bool {
 /// and answers each passphrase prompt in order. Returns success.
 pub fn run_with_pty(tool: &Path, args: &[&str], answers: &[&str]) -> bool {
     let driver = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/pty_drive.py");
-    let mut cmd = Command::new("python3");
+    let Some(python) = find_tool("python3") else {
+        return false;
+    };
+    let mut cmd = Command::new(python);
     cmd.arg(driver).args(answers).arg("--").arg(tool).args(args);
-    // Keep pinentry off PATH so rage prompts on the terminal.
-    cmd.env("PATH", "/usr/bin:/bin");
+    // An empty PATH keeps pinentry (e.g. /usr/bin/pinentry-curses on Debian
+    // and Ubuntu) out of reach, so rage prompts on the terminal instead.
+    cmd.env("PATH", "/nonexistent");
     // stderr is inherited so a failing tool's transcript shows in test logs.
     cmd.stdin(Stdio::null()).stdout(Stdio::null());
     cmd.status().map(|s| s.success()).unwrap_or(false)
