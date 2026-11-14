@@ -854,7 +854,7 @@ fn settings(app: &mut NilavarApp, ui: &mut egui::Ui, next: &mut Option<Modal>) -
                     } else {
                         theme::MUTED
                     }))
-                    .frame(on)
+                    .frame_when_inactive(on)
                     .fill(theme::GREEN_DIM),
                 )
                 .clicked()

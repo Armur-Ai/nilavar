@@ -165,7 +165,7 @@ fn top_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
                             } else {
                                 theme::MUTED
                             }))
-                            .frame(on)
+                            .frame_when_inactive(on)
                             .fill(theme::GREEN_DIM);
                             if ui.add(b).on_hover_text(platform_shortcut(tip)).clicked() {
                                 app.ws.focus_mode = false;
@@ -201,7 +201,7 @@ fn icon_button(ui: &mut egui::Ui, ic: &str, tip: &str) -> egui::Response {
 
 fn status_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
     egui::Panel::bottom("status-bar")
-        .exact_size(26.0)
+        .exact_size(28.0)
         .frame(
             egui::Frame::new()
                 .fill(theme::PANEL)
@@ -228,7 +228,7 @@ fn status_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
                     app.run_command(Command::Save, ui.ctx());
                 }
                 if matches!(app.save_status, SaveStatus::Failed(_))
-                    && ui.small_button("Retry").clicked()
+                    && ui.link(small("retry".into(), theme::CYAN)).clicked()
                 {
                     app.run_command(Command::Save, ui.ctx());
                 }
@@ -251,7 +251,7 @@ fn status_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
                             DocMode::Plain => "Plain text",
                         };
                         if ui
-                            .add(egui::Button::new(small(mode.into(), theme::MUTED)).frame(false))
+                            .add(egui::Label::new(small(mode.into(), theme::MUTED)).sense(Sense::click()))
                             .on_hover_text("Switch Markdown / plain text")
                             .clicked()
                         {
@@ -477,19 +477,7 @@ fn sidebar(app: &mut NilavarApp, ui: &mut egui::Ui) {
 }
 
 fn nav_item(ui: &mut egui::Ui, ic: &str, label: &str, on: bool) -> egui::Response {
-    let text =
-        RichText::new(format!("{ic}  {label}")).color(if on { theme::GREEN } else { theme::TEXT });
-    ui.add_sized(
-        [ui.available_width(), 26.0],
-        egui::Button::new(text)
-            .fill(if on {
-                theme::GREEN_DIM
-            } else {
-                Color32::TRANSPARENT
-            })
-            .stroke(Stroke::NONE)
-            .frame(on),
-    )
+    theme::row_button(ui, format!("{ic}   {label}"), on, 0.0)
 }
 
 fn doc_ids_sorted(
@@ -530,55 +518,29 @@ fn folder_tree(app: &mut NilavarApp, ui: &mut egui::Ui, parent: Option<FolderId>
     for (fid, name, count) in folders {
         let expanded = app.ws.expanded.contains(&fid);
         let selected = matches!(app.ws.filter, Filter::Folder(f) if f == fid);
-        let resp = ui
-            .horizontal(|ui| {
-                ui.add_space(depth as f32 * 12.0);
-                let caret = if expanded {
-                    icon::CARET_DOWN
-                } else {
-                    icon::CARET_RIGHT
-                };
-                if ui
-                    .add(
-                        egui::Button::new(RichText::new(caret).size(11.0).color(theme::MUTED))
-                            .frame(false),
-                    )
-                    .clicked()
-                {
-                    if expanded {
-                        app.ws.expanded.remove(&fid);
-                    } else {
-                        app.ws.expanded.insert(fid);
-                    }
-                }
-                let ic = if expanded {
-                    icon::FOLDER_OPEN
-                } else {
-                    icon::FOLDER
-                };
-                let text = RichText::new(format!("{ic}  {name}")).color(if selected {
-                    theme::GREEN
-                } else {
-                    theme::TEXT
-                });
-                let r = ui.add(
-                    egui::Button::new(text)
-                        .frame(selected)
-                        .fill(theme::GREEN_DIM)
-                        .stroke(Stroke::NONE)
-                        .truncate(),
-                );
-                ui.label(
-                    RichText::new(count.to_string())
-                        .size(11.0)
-                        .color(theme::MUTED),
-                );
-                r
-            })
-            .inner;
+        let caret = if expanded {
+            icon::CARET_DOWN
+        } else {
+            icon::CARET_RIGHT
+        };
+        let ic = if expanded {
+            icon::FOLDER_OPEN
+        } else {
+            icon::FOLDER
+        };
+        let resp = theme::row_button(
+            ui,
+            format!("{caret}  {ic}   {name}   {count}"),
+            selected,
+            depth as f32 * 14.0,
+        );
         if resp.clicked() {
-            app.ws.filter = Filter::Folder(fid);
-            app.ws.expanded.insert(fid);
+            if selected && expanded {
+                app.ws.expanded.remove(&fid);
+            } else {
+                app.ws.filter = Filter::Folder(fid);
+                app.ws.expanded.insert(fid);
+            }
         }
         resp.context_menu(|ui| {
             if ui
@@ -653,32 +615,16 @@ fn doc_row(app: &mut NilavarApp, ui: &mut egui::Ui, id: DocId, depth: usize) {
     };
     let active = app.ws.active == Some(id);
     let dirty = app.doc_is_dirty(id);
-    let resp = ui
-        .horizontal(|ui| {
-            ui.add_space(depth as f32 * 12.0 + 14.0);
-            let ic = match (pinned, mode) {
-                (true, _) => icon::PUSH_PIN,
-                (_, DocMode::Markdown) => icon::FILE_TEXT,
-                (_, DocMode::Plain) => icon::FILE,
-            };
-            let mut text = format!("{ic}  {title}");
-            if dirty {
-                text.push_str("  •");
-            }
-            ui.add_sized(
-                [ui.available_width(), 24.0],
-                egui::Button::new(RichText::new(text).color(if active {
-                    theme::GREEN
-                } else {
-                    theme::TEXT
-                }))
-                .frame(active)
-                .fill(theme::GREEN_DIM)
-                .stroke(Stroke::NONE)
-                .truncate(),
-            )
-        })
-        .inner;
+    let ic = match (pinned, mode) {
+        (true, _) => icon::PUSH_PIN,
+        (_, DocMode::Markdown) => icon::FILE_TEXT,
+        (_, DocMode::Plain) => icon::FILE,
+    };
+    let mut text = format!("{ic}   {title}");
+    if dirty {
+        text.push_str("  •");
+    }
+    let resp = theme::row_button(ui, text, active, depth as f32 * 14.0 + 18.0);
     if resp.clicked() {
         app.open_doc(id);
     }
@@ -695,7 +641,11 @@ fn display_title(t: &str) -> String {
 
 fn doc_menu(app: &mut NilavarApp, ui: &mut egui::Ui, id: DocId) {
     let ctx = ui.ctx().clone();
-    app.ws.active = Some(id);
+    // Actions apply to this document: make it the active tab first.
+    let run = |app: &mut NilavarApp, cmd: Command| {
+        app.open_doc(id);
+        app.run_command(cmd, &ctx);
+    };
     if ui.button(format!("{} Open", icon::FILE_TEXT)).clicked() {
         app.open_doc(id);
         ui.close();
@@ -704,14 +654,14 @@ fn doc_menu(app: &mut NilavarApp, ui: &mut egui::Ui, id: DocId) {
         .button(format!("{} Rename", icon::PENCIL_SIMPLE))
         .clicked()
     {
-        app.run_command(Command::RenameDocument, &ctx);
+        run(app, Command::RenameDocument);
         ui.close();
     }
     if ui
         .button(format!("{} Pin / unpin", icon::PUSH_PIN))
         .clicked()
     {
-        app.run_command(Command::TogglePin, &ctx);
+        run(app, Command::TogglePin);
         ui.close();
     }
     ui.menu_button(format!("{} Move to", icon::FOLDER), |ui| {
@@ -751,7 +701,7 @@ fn doc_menu(app: &mut NilavarApp, ui: &mut egui::Ui, id: DocId) {
         .button(format!("{} Copy text (auto-clears)", icon::COPY))
         .clicked()
     {
-        app.run_command(Command::CopyDocument, &ctx);
+        run(app, Command::CopyDocument);
         ui.close();
     }
     ui.separator();
@@ -759,7 +709,7 @@ fn doc_menu(app: &mut NilavarApp, ui: &mut egui::Ui, id: DocId) {
         .button(format!("{} Export encrypted (.age)…", icon::EXPORT))
         .clicked()
     {
-        app.run_command(Command::ExportEncrypted, &ctx);
+        run(app, Command::ExportEncrypted);
         ui.close();
     }
     if ui
@@ -768,7 +718,7 @@ fn doc_menu(app: &mut NilavarApp, ui: &mut egui::Ui, id: DocId) {
         )
         .clicked()
     {
-        app.run_command(Command::ExportPlaintext, &ctx);
+        run(app, Command::ExportPlaintext);
         ui.close();
     }
     ui.separator();
@@ -1404,7 +1354,7 @@ fn right_pane(app: &mut NilavarApp, ui: &mut egui::Ui) {
                     } else {
                         theme::MUTED
                     }))
-                    .frame(on)
+                    .frame_when_inactive(on)
                     .fill(theme::GREEN_DIM),
                 )
                 .clicked()
@@ -1519,18 +1469,8 @@ fn history_pane(app: &mut NilavarApp, ui: &mut egui::Ui, id: DocId) {
                 let latest = if i == 0 { " · latest" } else { "" };
                 let text =
                     RichText::new(format!("{}  {kind_s}{latest} · {len} B", format_utc(*at)))
-                        .font(theme::mono(11.5))
-                        .color(if on { theme::GREEN } else { theme::TEXT });
-                if ui
-                    .add_sized(
-                        [ui.available_width(), 24.0],
-                        egui::Button::new(text)
-                            .frame(on)
-                            .fill(theme::GREEN_DIM)
-                            .stroke(Stroke::NONE),
-                    )
-                    .clicked()
-                {
+                        .font(theme::mono(11.5));
+                if theme::row_button(ui, text, on, 0.0).clicked() {
                     app.ws.history_sel = Some(*hid);
                 }
             }

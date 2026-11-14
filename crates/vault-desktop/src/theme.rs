@@ -82,6 +82,9 @@ pub fn fonts() -> FontDefinitions {
         .unwrap_or_default();
     let phosphor = ["Phosphor".to_owned()];
 
+    // Text font first, then Phosphor for icons (the bundled text fonts have
+    // their Private Use Area cmap entries removed so they never shadow icons;
+    // see assets/fonts/NOTICE.md), then egui's fallbacks.
     let chain = |first: &str| -> Vec<String> {
         let mut v = vec![first.to_owned()];
         v.extend(phosphor.iter().cloned());
@@ -229,6 +232,61 @@ pub fn glow_dot(painter: &egui::Painter, center: egui::Pos2, color: Color32) {
     painter.circle_filled(center, 7.0, color.gamma_multiply(0.10));
     painter.circle_filled(center, 4.5, color.gamma_multiply(0.25));
     painter.circle_filled(center, 3.0, color);
+}
+
+/// A full-width, left-aligned selectable row (sidebar items).
+pub fn row_button(
+    ui: &mut egui::Ui,
+    text: impl Into<egui::WidgetText>,
+    selected: bool,
+    indent: f32,
+) -> egui::Response {
+    let text: egui::WidgetText = text.into();
+    let label = text.text().to_owned();
+    let h = 26.0;
+    let w = ui.available_width();
+    let (rect, resp) = ui.allocate_exact_size(egui::vec2(w, h), egui::Sense::click());
+    resp.widget_info(|| {
+        egui::WidgetInfo::selected(egui::Role::Button, true, selected, label.clone())
+    });
+    if ui.is_rect_visible(rect) {
+        let fill = if selected {
+            GREEN_DIM
+        } else if resp.hovered() {
+            Color32::from_rgb(0x13, 0x20, 0x1C)
+        } else {
+            Color32::TRANSPARENT
+        };
+        ui.painter().rect_filled(rect, CornerRadius::same(5), fill);
+        if selected {
+            let bar = egui::Rect::from_min_size(
+                rect.min + egui::vec2(0.0, 5.0),
+                egui::vec2(2.0, h - 10.0),
+            );
+            ui.painter().rect_filled(bar, 1.0, GREEN);
+        }
+        if resp.has_focus() {
+            ui.painter().rect_stroke(
+                rect,
+                CornerRadius::same(5),
+                Stroke::new(1.0, CYAN),
+                egui::StrokeKind::Inside,
+            );
+        }
+        let color = if selected { GREEN } else { TEXT };
+        let galley = text.into_galley(
+            ui,
+            Some(egui::TextWrapMode::Truncate),
+            w - indent - 12.0,
+            egui::TextStyle::Body,
+        );
+        let pos = egui::pos2(
+            rect.left() + 8.0 + indent,
+            rect.center().y - galley.size().y / 2.0,
+        );
+        ui.painter().galley(pos, galley, color);
+    }
+    resp
 }
 
 /// Section label in the sidebar ("FOLDERS", "TAGS", …).

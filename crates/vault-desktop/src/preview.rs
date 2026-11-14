@@ -79,8 +79,23 @@ fn paragraph(
     bold: bool,
     action: &mut Option<PreviewAction>,
 ) {
+    let w = ui.available_width();
+    paragraph_w(ui, spans, p, size, color, bold, action, w);
+}
+
+#[allow(clippy::too_many_arguments)]
+fn paragraph_w(
+    ui: &mut egui::Ui,
+    spans: &[Span],
+    p: &Preview,
+    size: f32,
+    color: Color32,
+    bold: bool,
+    action: &mut Option<PreviewAction>,
+    max_w: f32,
+) {
     let mut job = spans_job(spans, size, color, bold);
-    job.wrap.max_width = ui.available_width();
+    job.wrap.max_width = max_w;
     let galley = ui.fonts_mut(|f| f.layout_job(job));
     let resp = ui.add(egui::Label::new(galley.clone()).sense(egui::Sense::click()));
     // Find which link (if any) was clicked: map pointer to char index.
@@ -256,20 +271,42 @@ fn block(
                 .corner_radius(4)
                 .inner_margin(8)
                 .show(ui, |ui| {
-                    egui::Grid::new(ui.next_auto_id())
-                        .striped(true)
-                        .spacing(egui::vec2(16.0, 6.0))
+                    egui::ScrollArea::horizontal()
+                        .id_salt(ui.next_auto_id())
                         .show(ui, |ui| {
-                            for c in header {
-                                paragraph(ui, c, p, size, theme::GREEN, true, action);
-                            }
-                            ui.end_row();
-                            for r in rows {
-                                for c in r {
-                                    paragraph(ui, c, p, size, theme::TEXT, false, action);
-                                }
-                                ui.end_row();
-                            }
+                            egui::Grid::new(ui.next_auto_id())
+                                .striped(true)
+                                .spacing(egui::vec2(16.0, 6.0))
+                                .show(ui, |ui| {
+                                    for c in header {
+                                        paragraph_w(
+                                            ui,
+                                            c,
+                                            p,
+                                            size,
+                                            theme::GREEN,
+                                            true,
+                                            action,
+                                            320.0,
+                                        );
+                                    }
+                                    ui.end_row();
+                                    for r in rows {
+                                        for c in r {
+                                            paragraph_w(
+                                                ui,
+                                                c,
+                                                p,
+                                                size,
+                                                theme::TEXT,
+                                                false,
+                                                action,
+                                                320.0,
+                                            );
+                                        }
+                                        ui.end_row();
+                                    }
+                                });
                         });
                 });
         }

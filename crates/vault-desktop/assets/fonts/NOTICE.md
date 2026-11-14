@@ -8,7 +8,11 @@ runtime.
 | `JetBrainsMono-Regular.ttf`, `JetBrainsMono-Bold.ttf` | JetBrains Mono | v2.304, https://github.com/JetBrains/JetBrainsMono/releases/tag/v2.304 | SIL Open Font License 1.1 (`JetBrainsMono-OFL.txt`) |
 | `Inter-Regular.ttf`, `Inter-SemiBold.ttf` | Inter | v4.1 (`extras/ttf`), https://github.com/rsms/inter/releases/tag/v4.1 | SIL Open Font License 1.1 (`Inter-LICENSE.txt`) |
 
-SHA-256:
+**Modification:** the four text-font files have had their Private Use Area
+(U+E000–U+F8FF) `cmap` entries removed with `tools/strip_pua.py` so they do
+not shadow the icon font. Glyph outlines are unchanged. Neither font declares
+a Reserved Font Name, so modified redistribution under the OFL is permitted.
+SHA-256 of the original upstream files:
 
 ```
 a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f  JetBrainsMono-Regular.ttf
@@ -17,8 +21,19 @@ a0bf60ef0f83c5ed4d7a75d45838548b1f6873372dfac88f71804491898d138f  JetBrainsMono-
 78a843fade9d4612a5567302fb595b56976eb5fcebf4fea5a5912d638bafcde3  Inter-SemiBold.ttf
 ```
 
-Icons: Phosphor Icons (regular weight) via the `egui-phosphor` crate, MIT
-license, https://github.com/phosphor-icons/core.
+SHA-256 of the bundled (modified) files:
+
+```
+54d37a6f26d430faad69958368190049e163e15bcfacdba76ff6ae53677c2703  JetBrainsMono-Regular.ttf
+0d1916a69e8157514dfaaebb93dcd9967bcea3920071872b6a6681359d8ec068  JetBrainsMono-Bold.ttf
+2020943e1dbc41a419a309581e6ab4c59472b357247553349a6343181cb129ff  Inter-Regular.ttf
+b90216f9d5a87d73c9625ba7187afb40a04c60d4bdf1cd8cd64a58f951985b9c  Inter-SemiBold.ttf
+06b91e022b7ee899a63efced879392a74f0bacbda54e4467e9f663220d173a10  Phosphor-Regular.ttf
+```
+
+Icons: `Phosphor-Regular.ttf` — Phosphor Icons (regular weight), MIT license
+(`Phosphor-LICENSE-MIT.txt`), https://github.com/phosphor-icons/core; file taken
+from the egui-phosphor 0.14.0 crate.
 
 Fallback glyphs (emoji and wide Unicode coverage) come from the fonts that
 ship with egui (`default_fonts` feature: Ubuntu-Light, Hack, Noto Emoji,
