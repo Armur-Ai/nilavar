@@ -1,0 +1,26 @@
+# Used by the release workflow: repackages the prebuilt release binaries
+# into a pacman package (Arch Linux, BlackArch and other Arch derivatives).
+pkgname=nilavar
+pkgver=@PKGVER@
+pkgrel=1
+pkgdesc="Offline encrypted workspace for notes and secrets (unaudited alpha)"
+arch=('x86_64')
+url="https://github.com/Armur-Ai/nilavar"
+license=('MIT')
+depends=('gcc-libs' 'glibc' 'libxkbcommon' 'hicolor-icon-theme')
+optdepends=('vulkan-icd-loader: GPU rendering' 'mesa: OpenGL/Vulkan drivers'
+            'wayland: Wayland session support' 'libx11: X11 session support'
+            'xdg-desktop-portal: native file dialogs')
+options=('!strip' '!debug')
+source=("nilavar-linux-x86_64.tar.gz")
+sha256sums=('SKIP')
+
+package() {
+  cd "$srcdir/nilavar-linux-x86_64"
+  install -Dm755 nilavar "$pkgdir/usr/bin/nilavar"
+  install -Dm755 nilavar-cli "$pkgdir/usr/bin/nilavar-cli"
+  install -Dm644 nilavar.desktop "$pkgdir/usr/share/applications/nilavar.desktop"
+  install -Dm644 nilavar.png "$pkgdir/usr/share/icons/hicolor/256x256/apps/nilavar.png"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 USER_GUIDE.md "$pkgdir/usr/share/doc/$pkgname/USER_GUIDE.md"
+}

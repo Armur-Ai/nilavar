@@ -21,8 +21,10 @@ metadata, rollback protection, and an opt-in UI).
    platform you will publish for: create, edit, save, lock/unlock, history
    restore, export/import, backup/restore, conflict copy. Record which
    platforms were actually tested in the release notes.
-9. Build artifacts with the packaging scripts (or the `Package (unsigned)`
-   workflow) and publish `SHA256SUMS` and the SBOMs alongside them.
+9. Push a `vX.Y.Z` tag: the `Release` workflow builds the macOS DMG,
+   Windows .exe/.zip, .deb (Kali/Debian/Ubuntu), pacman package
+   (Arch/BlackArch) and portable Linux tarball, and publishes them with
+   `SHA256SUMS` and SBOMs under stable asset names used by the README buttons.
 10. Release notes state: the build is an **unaudited alpha**, what is
     signed and what is not, which platforms were tested, known issues.
 11. Tag the release (`git tag -s vX.Y.Z` if you have a signing key).
@@ -32,6 +34,8 @@ metadata, rollback protection, and an opt-in UI).
 | Platform | Script | Output |
 |---|---|---|
 | macOS | `scripts/package-macos.sh` | `Nilavar-<ver>-macos-<arch>-UNSIGNED.zip` (app bundle), `nilavar-cli-…tar.gz`, `sbom/*.cdx.json`, `SHA256SUMS` |
+| Debian/Ubuntu/Kali | `scripts/package-deb.sh` | `nilavar_<ver>_<arch>.deb` |
+| Arch/BlackArch | `packaging/arch/PKGBUILD` (source) / `PKGBUILD-bin` (CI) | `nilavar-<ver>-1-x86_64.pkg.tar.zst` |
 | Linux | `scripts/package-linux.sh` | `nilavar-<ver>-linux-<arch>-UNSIGNED.tar.gz` (binaries, `.desktop`, icon, user-local `install.sh`) |
 | Windows | `scripts/package-windows.ps1` | `nilavar-<ver>-windows-x86_64-UNSIGNED.zip` |
 

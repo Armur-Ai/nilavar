@@ -1,0 +1,42 @@
+# Builds Nilavar from source. Works on Arch Linux and Arch-based
+# distributions such as BlackArch, EndeavourOS and Manjaro:
+#   makepkg -si
+# Maintainer: The Nilavar contributors
+pkgname=nilavar
+pkgver=0.1.0_alpha.1
+_tag=v0.1.0-alpha.1
+pkgrel=1
+pkgdesc="Offline encrypted workspace for notes and secrets (unaudited alpha)"
+arch=('x86_64' 'aarch64')
+url="https://github.com/Armur-Ai/nilavar"
+license=('MIT')
+depends=('gcc-libs' 'glibc' 'libxkbcommon' 'hicolor-icon-theme')
+optdepends=('vulkan-icd-loader: GPU rendering' 'mesa: OpenGL/Vulkan drivers'
+            'wayland: Wayland session support' 'libx11: X11 session support'
+            'xdg-desktop-portal: native file dialogs')
+makedepends=('cargo' 'git' 'python')
+options=('!lto' '!debug')
+source=("$pkgname::git+$url.git#tag=$_tag")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$pkgname"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "$pkgname"
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+  cargo build --frozen --release -p vault-desktop -p vault-cli
+}
+
+package() {
+  cd "$pkgname"
+  install -Dm755 target/release/nilavar "$pkgdir/usr/bin/nilavar"
+  install -Dm755 target/release/nilavar-cli "$pkgdir/usr/bin/nilavar-cli"
+  install -Dm644 packaging/linux/nilavar.desktop "$pkgdir/usr/share/applications/nilavar.desktop"
+  python tools/make_icon.py "$pkgdir/usr/share/icons/hicolor/256x256/apps/nilavar.png" 256
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 docs/USER_GUIDE.md "$pkgdir/usr/share/doc/$pkgname/USER_GUIDE.md"
+}

@@ -1,159 +1,220 @@
-# Nilavar
+<div align="center">
 
-**An offline, encrypted workspace for confidential text** — Markdown notes,
-passwords written in notes, recovery codes, API credentials and text key
-files — in a fast native desktop app with a Matrix-inspired terminal look.
+<img src="crates/vault-desktop/assets/icon-256.png" width="112" alt="Nilavar icon">
 
-> **Status: unaudited alpha (`0.1.0-alpha.1`).** Nilavar has not been
-> independently reviewed. Keep independent backups of anything important and
-> read [SECURITY.md](SECURITY.md) and [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md)
-> before relying on it.
+# NILAVAR
 
-![Editor with Markdown preview (synthetic data)](docs/screenshots/03-editor-preview.png)
+**Your secrets, in one encrypted file. Offline. Forever.**
 
-## What it is
+A private notebook for passwords, recovery codes, API keys and notes that
+never touches the internet. No accounts. No cloud. No servers to fail.
 
-- **One portable encrypted file.** A vault is a single standard
-  [age](https://age-encryption.org) passphrase-encrypted file
-  (`*.nvault.age`). Titles, folders, tags, text, history, trash and
-  vault preferences all live *inside* the encryption. Copy the file to a
-  cloud drive or USB stick, install Nilavar on another computer, and open it
-  with the same passphrase — no account, no server, no device key.
-- **A real editor.** Tabs, folders, tags, global search, find & replace,
-  command palette, quick switcher, Markdown highlighting and an inert
-  preview, list continuation, line numbers that stay right under soft wrap,
-  focus mode, undo/redo.
-- **Encrypted history, trash and recovery.** Saved versions with diff and
-  restore, a trash you purge explicitly, encrypted last-known-good recovery
-  copies, encrypted backups and restore-as-new.
-- **Careful about leaks.** No networking code at all, and on macOS the kernel
-  is told to deny every socket for the process. No telemetry, no plaintext
-  caches or indexes on disk, clipboard auto-clear, auto-lock (idle, sleep,
-  screen lock), redacted diagnostics.
-- **Recoverable without the app.** `age -d vault.nvault.age` yields a
-  documented JSON file ([docs/FORMAT.md](docs/FORMAT.md)). A small CLI,
-  `nilavar-cli`, verifies, exports and recovers vaults.
+<br>
+
+[![Download for macOS](https://img.shields.io/badge/Download-macOS%20(.dmg)-39FF88?style=for-the-badge&logo=apple&logoColor=black&labelColor=0B1210)](https://github.com/Armur-Ai/nilavar/releases/latest/download/Nilavar-macOS-universal.dmg)
+[![Download for Windows](https://img.shields.io/badge/Download-Windows%20(.exe)-39FF88?style=for-the-badge&logo=windows&logoColor=black&labelColor=0B1210)](https://github.com/Armur-Ai/nilavar/releases/latest/download/Nilavar-Windows-x64.exe)
+<br>
+[![Kali / Debian / Ubuntu](https://img.shields.io/badge/Kali%20·%20Debian%20·%20Ubuntu-.deb-5DE4D4?style=for-the-badge&logo=kalilinux&logoColor=black&labelColor=0B1210)](https://github.com/Armur-Ai/nilavar/releases/latest/download/nilavar_amd64.deb)
+[![Arch / BlackArch](https://img.shields.io/badge/Arch%20·%20BlackArch-pacman-5DE4D4?style=for-the-badge&logo=archlinux&logoColor=black&labelColor=0B1210)](https://github.com/Armur-Ai/nilavar/releases/latest/download/nilavar-x86_64.pkg.tar.zst)
+[![Any Linux](https://img.shields.io/badge/Any%20Linux-.tar.gz-8CA99A?style=for-the-badge&logo=linux&logoColor=black&labelColor=0B1210)](https://github.com/Armur-Ai/nilavar/releases/latest/download/nilavar-linux-x86_64.tar.gz)
+
+<sub>All downloads and checksums: <a href="https://github.com/Armur-Ai/nilavar/releases/latest">latest release</a> · New here? Read the <a href="docs/USER_GUIDE.md"><b>User Guide</b></a> (no tech skills needed)</sub>
+
+<br><br>
+
+<img src="docs/screenshots/showcase/welcome.png" alt="Nilavar welcome screen with digital rain" width="100%">
+
+</div>
+
+> <sub>**Why "Nilavar"?** *Nilavara* (നിലവറ) is Malayalam for an underground
+> vault. Beneath the Sree Padmanabhaswamy Temple in Thiruvananthapuram lie
+> the temple's *nilavaras* — sealed chambers whose treasure stayed hidden for
+> centuries, and one of which, Vault B, has famously never been opened. This
+> app borrows the name for the same idea: what you put inside stays sealed
+> until the right key is presented.</sub>
+
+---
+
+## ⚡ Killer features
+
+- 🔒 **One file holds everything.** Every note, title, folder, tag, version
+  and deleted item lives inside a single encrypted `.nvault.age` file.
+  Nothing readable is left lying around on disk.
+- 📡 **Zero internet. Zero accounts.** Nilavar contains no networking code
+  at all — no sync servers, telemetry, update checks or crash uploads. On
+  macOS it goes further and asks the operating system's kernel to block
+  every network connection the app could ever make.
+- 🧳 **Your data travels as a file.** Copy the vault to a USB stick, Google
+  Drive, Dropbox or an email to yourself, open it on any computer with the
+  same passphrase. No device registration, no "approve this login".
+- 🛡️ **Serious, modern encryption.** The vault is a standard
+  [age](https://age-encryption.org) file: 256-bit keys, ChaCha20-Poly1305
+  authenticated encryption, and scrypt to make every passphrase guess
+  deliberately slow and memory-hungry. Fresh keys on every single save.
+- 🕰️ **Nothing gets lost.** Encrypted version history with side-by-side
+  diffs and one-click restore, a trash you empty on purpose, automatic
+  encrypted recovery copies, encrypted backups, and crash-safe saving.
+- 🤝 **Never silently overwrites.** Edited the same vault on two computers?
+  Nilavar detects it and saves your version as a separate encrypted
+  conflict copy — nothing is ever clobbered.
+- 🚪 **Locks itself.** On idle, on sleep, when your screen locks, or with
+  one keystroke — and copied passwords are wiped from the clipboard after 30
+  seconds.
+- ⌨️ **A real editor, built for the keyboard.** Tabs, folders, tags, vault-wide
+  search, find & replace, command palette, quick switcher, Markdown
+  highlighting with a safe live preview, checklists, focus mode.
+- 🖥️ **Runs everywhere.** macOS (Apple Silicon & Intel), Windows, Kali,
+  Debian, Ubuntu, Arch, BlackArch — plus a recovery command-line tool.
+- 🧾 **Open source, MIT licensed, auditable.** No lock-in: the file format is
+  documented and opens with the standard `age` tool, even without Nilavar.
+
+---
+
+## ☢️ Built to outlast (even the apocalypse)
+
+Most "secure" apps are a login page in front of someone else's server.
+When the company shuts down, gets breached, changes its pricing or the
+internet goes dark, your data goes with it. Nilavar is built the other way
+around:
+
+- **No servers to go down.** There's nothing to shut off. The app runs on
+  your machine and needs nothing from the outside world — ever.
+- **No subscription, no account, no expiry.** Download it once and it works
+  offline indefinitely.
+- **Works with zero connectivity.** No Wi-Fi, no cell signal, air-gapped
+  laptop in a bunker — it doesn't care.
+- **Your data is one portable file.** Keep copies on a USB stick, an old
+  laptop, a cloud drive and a drive in a fireproof box. Any copy plus your
+  passphrase brings everything back.
+- **Readable without us.** The vault uses the open, widely implemented age
+  format with a documented layout ([FORMAT.md](docs/FORMAT.md)). If Nilavar
+  vanished tomorrow, `age -d vault.nvault.age` would still give you your notes.
+- **No secret held hostage.** No recovery service, no backdoor, no master
+  key that could be stolen, subpoenaed or lost. Only your passphrase opens
+  your vault.
+
+---
+
+## 🖼️ A look inside
+
+<p align="center">
+  <img src="docs/screenshots/showcase/editor-preview.png" alt="Editor with live Markdown preview" width="100%">
+  <br><sub><b>The workspace</b> — folders and tags on the left, a keyboard-first editor with line numbers and Markdown highlighting, and a safe live preview (no web view, no remote images, links only open after you confirm).</sub>
+</p>
+
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/showcase/command-palette.png" alt="Command palette"><br><sub><b>Command palette</b> (⇧⌘P) — every action is a few keystrokes away. It only runs app actions, never shell commands.</sub></td>
+<td width="50%"><img src="docs/screenshots/showcase/vault-search.png" alt="Vault-wide search"><br><sub><b>Search the whole vault</b> — titles, tags and text with highlighted snippets, computed in memory and never written to disk.</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/showcase/history-diff.png" alt="Version history with diff"><br><sub><b>Version history</b> — compare any saved version with the current text and restore it in one click. History is encrypted too.</sub></td>
+<td><img src="docs/screenshots/showcase/focus-find.png" alt="Focus mode with find"><br><sub><b>Focus mode + find & replace</b> — distraction-free writing with match highlighting and counts.</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/showcase/info-tags.png" alt="Document info and tags"><br><sub><b>Info & tags</b> — metadata, tags and per-note actions: encrypted export, pin, copy with auto-clear.</sub></td>
+<td><img src="docs/screenshots/showcase/about-capabilities.png" alt="Security capabilities"><br><sub><b>Honest security panel</b> — shows exactly which protections are active on <i>your</i> computer, with no fake indicators.</sub></td>
+</tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/showcase/lock.png" alt="Lock screen" width="70%">
+  <br><sub><b>Locked</b> — the workspace is masked the instant it locks. All screenshots use made-up example data.</sub>
+</p>
+
+---
+
+## 🚀 Get started in 60 seconds
+
+1. **Download** for your system with the buttons above and open the app
+   (unsigned builds: see the [User Guide](docs/USER_GUIDE.md#2-install-nilavar)
+   for the one-time "open anyway" step).
+2. Click **Create new vault…**, choose where to save it, and pick a
+   passphrase — or let Nilavar **suggest one** (seven random words).
+3. **Write the passphrase down.** There is no reset. That's the point.
+4. Start writing. It saves (encrypted) automatically.
+
+### Moving between devices
+
+Nilavar has no cloud sync — on purpose. **You carry the encrypted file:**
+
+```
+  Laptop                              Any other computer
+  vault.nvault.age  ── copy via USB / Drive / Dropbox / email ──▶  vault.nvault.age
+  (encrypted)                                                     open with the SAME passphrase
+```
+
+Put the vault in a cloud-synced folder if you like — the provider only ever
+sees an encrypted blob. If two computers change it at once, Nilavar keeps
+both versions instead of overwriting either.
+
+### Keyboard shortcuts
+
+| Action | macOS | Windows / Linux |
+|---|---|---|
+| New note | ⌘N | Ctrl+N |
+| Save now | ⌘S | Ctrl+S |
+| Go to note | ⌘P | Ctrl+P |
+| Command palette | ⇧⌘P | Ctrl+Shift+P |
+| Find / replace | ⌘F / ⌥⌘F | Ctrl+F / Ctrl+Alt+F |
+| Search whole vault | ⇧⌘F | Ctrl+Shift+F |
+| Preview | ⌘E | Ctrl+E |
+| Sidebar / focus mode | ⌘\ / ⇧⌘\ | Ctrl+\ / Ctrl+Shift+\ |
+| Lock | ⇧⌘L | Ctrl+Shift+L |
+
+---
+
+## 🔐 Security, in plain words
 
 | | |
 |---|---|
-| ![Lock screen](docs/screenshots/01-lock-screen.png) | ![Command palette](docs/screenshots/04-command-palette.png) |
-| ![Version history with diff](docs/screenshots/05-history-diff.png) | ![Conflict handling](docs/screenshots/08-conflict.png) |
+| **Encryption** | [age](https://age-encryption.org) v1 passphrase mode: scrypt key derivation (2^18 work factor, ~0.3 s per unlock by design) and ChaCha20-Poly1305 with 256-bit keys. Implemented by the Rust `age` crate; Nilavar invents no cryptography. |
+| **What's encrypted** | Everything: titles, folders, tags, text, history, trash, settings for the vault. |
+| **What's visible** | Only the vault file's name, size and timestamps. |
+| **Internet** | None. No networking code; on macOS the kernel blocks the app's network access entirely. |
+| **Tamper-proof** | Any change to the file — even one flipped bit — is detected and the vault refuses to open rather than show corrupted data. |
+| **Memory & clipboard** | Plaintext held in self-wiping buffers, workspace wiped on lock, clipboard auto-clear, no crash dumps. |
+| **Status** | An **unaudited alpha**. 100+ automated tests, fuzzing and interop tests against the reference `age` tools — but no independent audit yet. Keep backups. |
 
-All screenshots use synthetic data and are rendered by the automated UI
-tests (`crates/vault-desktop/tests/ui_flows.rs`).
+Details: [SECURITY.md](SECURITY.md) · [Threat model](docs/THREAT_MODEL.md) ·
+[Privacy](docs/PRIVACY.md) · [Recovery](docs/RECOVERY.md)
 
-## Install
+---
 
-### One command (macOS / Linux, from source, no sudo)
-
-```bash
-git clone <this repository> nilavar && cd nilavar
-./scripts/install.sh
-```
-
-On macOS this builds `~/Applications/Nilavar.app` and links `nilavar-cli`
-into `~/.local/bin`; on Linux it installs into `~/.local`. It needs Rust
-from <https://rustup.rs> (the pinned toolchain installs automatically).
-
-### From source with cargo (all platforms)
-
-Requirements: [Rust](https://rustup.rs) (the pinned toolchain in
-`rust-toolchain.toml` is installed automatically), a C toolchain, and on
-Linux the usual windowing headers
-(`libxkbcommon-dev libwayland-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev`).
+## 🛠️ For developers
 
 ```bash
-git clone <this repository> nilavar && cd nilavar
-cargo install --locked --path crates/vault-desktop   # installs `nilavar`
-cargo install --locked --path crates/vault-cli       # installs `nilavar-cli`
-nilavar
+git clone https://github.com/Armur-Ai/nilavar && cd nilavar
+./scripts/install.sh            # macOS/Linux user-level install from source
+cargo test --workspace          # 100+ tests incl. headless UI flows
 ```
 
-### macOS app bundle
-
-```bash
-./scripts/package-macos.sh        # builds dist/Nilavar.app (+ zip, checksums, SBOM)
-cp -R dist/Nilavar.app /Applications/
-```
-
-The bundle is **not signed with a Developer ID or notarized** (it carries an
-ad-hoc signature only). On first launch, right-click the app → *Open*, or run
-`xattr -dr com.apple.quarantine /Applications/Nilavar.app`. Signing and
-notarization steps are in [docs/RELEASING.md](docs/RELEASING.md).
-
-### Linux / Windows
-
-```bash
-./scripts/package-linux.sh        # dist/nilavar-<ver>-linux-<arch>-UNSIGNED.tar.gz (+ install.sh)
-pwsh ./scripts/package-windows.ps1
-```
-
-Linux and Windows builds compile in CI and their tests run there, but they
-have **not been manually exercised** on real desktops yet; see the matrix in
-[docs/TESTING.md](docs/TESTING.md).
-
-## Using it
-
-1. **Create a vault**: choose a location (the neutral default name is
-   `vault.nvault.age`) and a passphrase. Use *Suggest a passphrase* for
-   seven random words. There is **no password reset**.
-2. **Write**: `⌘N` new document, `⌘P` go to document, `⇧⌘P` command
-   palette, `⌘F` find, `⌥⌘F` replace, `⇧⌘F` search the vault, `⌘E`
-   preview, `⌘\` sidebar, `⇧⌘\` focus mode, `⇧⌘L` lock (Ctrl instead of ⌘
-   on Windows/Linux).
-3. **Save**: changes are autosaved (debounced, encrypted); `⌘S` always
-   saves now. The status bar shows the real save state.
-4. **Move between computers**: copy the vault file (for example to a cloud
-   drive). Nilavar detects if the file changed on disk and never silently
-   overwrites — it offers an encrypted conflict copy.
+- Rust workspace: `vault-core` (format, crypto adapter, storage, history,
+  search — no GUI, no `unsafe`), `vault-desktop` (egui/eframe app),
+  `vault-cli` (`nilavar-cli` recovery tool), `fuzz/`.
+- Arch users can also build from source with
+  [`packaging/arch/PKGBUILD`](packaging/arch/PKGBUILD) (`makepkg -si`).
+- Docs: [FORMAT](docs/FORMAT.md) · [DECISIONS](docs/DECISIONS.md) ·
+  [TESTING](docs/TESTING.md) · [DEPENDENCIES](docs/DEPENDENCIES.md) ·
+  [RELEASING](docs/RELEASING.md) · [ROADMAP](docs/ROADMAP.md) ·
+  [CONTRIBUTING](CONTRIBUTING.md)
 
 ### Recovery CLI
 
 ```bash
-nilavar-cli verify vault.nvault.age                 # decrypt + validate, print counts only
-nilavar-cli list vault.nvault.age                   # ids/sizes (titles only with --titles)
-nilavar-cli export vault.nvault.age --doc <id> --out note.txt.age      # age-encrypted
-nilavar-cli export vault.nvault.age --doc <id> --out note.md --plaintext   # asks you to confirm
-nilavar-cli recover vault.nvault.age --to-vault restored.nvault.age
+nilavar-cli verify vault.nvault.age           # check it opens; prints counts only
 nilavar-cli backup vault.nvault.age --out backup.nvault.age
+nilavar-cli recover vault.nvault.age --to-vault restored.nvault.age
 nilavar-cli change-passphrase vault.nvault.age
 ```
 
-Passphrases are read from the terminal (or one per line with
-`--passphrase-stdin`), never from arguments or environment variables.
-Recovered plaintext is never printed to standard output.
+---
 
-## Documentation
+<div align="center">
 
-| Document | Contents |
-|---|---|
-| [SECURITY.md](SECURITY.md) | Security properties, capability matrix, reporting vulnerabilities |
-| [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Assets, adversaries, in/out of scope, residual risks |
-| [docs/FORMAT.md](docs/FORMAT.md) | File format, payload schema, limits |
-| [docs/RECOVERY.md](docs/RECOVERY.md) | Recovery checklist, independent recovery with age/rage |
-| [docs/PRIVACY.md](docs/PRIVACY.md) | What is stored where, what is observable |
-| [docs/DECISIONS.md](docs/DECISIONS.md) | Design decisions and their reasons |
-| [docs/TESTING.md](docs/TESTING.md) | Test suites and the implemented / tested / deferred matrix |
-| [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) | Crypto dependency status, accepted advisories, unsafe code |
-| [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md) | Crate license inventory |
-| [docs/RELEASING.md](docs/RELEASING.md) | Release checklist, signing, reproducible builds |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | Deliberately excluded features |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Development setup and rules for handling secrets |
+**MIT licensed.** Fonts: JetBrains Mono & Inter (SIL OFL 1.1) · Icons:
+Phosphor (MIT) · Passphrase words: EFF wordlist (CC BY 3.0 US).
 
-## Project layout
+<sub>Built with care by Armur AI and contributors. No secrets were harmed in the making of these screenshots — every one uses made-up data.</sub>
 
-```
-crates/vault-core     document model, age adapter, validation, storage, history, search, diagnostics (no GUI, no unsafe)
-crates/vault-desktop  egui/eframe application
-crates/vault-cli      nilavar-cli recovery and verification tool
-fuzz/                 cargo-fuzz targets with synthetic seeds
-scripts/              packaging and repository checks
-docs/                 documentation and synthetic screenshots
-```
-
-## License
-
-MIT — see [LICENSE](LICENSE). Bundled fonts (JetBrains Mono, Inter: SIL OFL
-1.1; Phosphor Icons: MIT) and the EFF wordlist (CC BY 3.0 US) keep their own
-licenses; see `crates/vault-desktop/assets/fonts/NOTICE.md` and
-`crates/vault-core/data/README.md`.
+</div>

@@ -658,3 +658,127 @@ fn large_document_frame_times() {
         "typing frame too slow: {typing:?}"
     );
 }
+
+/// Renders Retina (2×) showcase screenshots for the README. Ignored by
+/// default; run with:
+/// `NILAVAR_SCREENSHOTS=docs/screenshots/showcase cargo test -p vault-desktop --test ui_flows -- --ignored showcase`
+#[test]
+#[ignore]
+fn showcase_screens() {
+    let dir = tempfile::tempdir().unwrap();
+    let vault = demo_vault(dir.path());
+    let data = DataDirs::at(dir.path().join("data"));
+    let v2 = vault.clone();
+    let mut h = Harness::builder()
+        .with_size(egui::vec2(1440.0, 900.0))
+        .with_pixels_per_point(2.0)
+        .with_render_cursor(false)
+        .with_max_steps(1_000_000)
+        .wgpu()
+        .build_eframe(move |cc| {
+            let mut app = NilavarApp::new(cc, data, vault_desktop::detect_capabilities(true, true));
+            app.work = WorkFactor::TESTING;
+            app.settings.reduce_motion = true;
+            app.screen = unlock_screen(v2);
+            app.clipboard = Box::new(FakeClipboard::default());
+            app
+        });
+    h.run_steps(3);
+    shot(&mut h, "lock");
+    unlock(&mut h, PASS);
+    wait_until(&mut h, "unlocked", |a| a.state == LockState::Unlocked);
+    let find = |h: &Harness<'_, NilavarApp>, t: &str| {
+        h.state()
+            .session
+            .as_ref()
+            .unwrap()
+            .vault()
+            .documents
+            .iter()
+            .find(|d| d.title.expose() == t)
+            .unwrap()
+            .id
+    };
+    let creds = find(&h, "Staging API credentials");
+    let folders: Vec<_> = h
+        .state()
+        .session
+        .as_ref()
+        .unwrap()
+        .vault()
+        .folders
+        .iter()
+        .map(|f| f.id)
+        .collect();
+    h.state_mut().ws.expanded.extend(folders);
+    let (sn, rc) = (
+        find(&h, "Server notes"),
+        find(&h, "Recovery codes (example)"),
+    );
+    h.state_mut().open_doc(sn);
+    h.state_mut().open_doc(rc);
+    h.state_mut().open_doc(creds);
+    h.state_mut().ws.right = RightPane::Preview;
+    h.run_steps(5);
+    shot(&mut h, "editor-preview");
+
+    h.state_mut().ws.right = RightPane::Info;
+    h.run_steps(4);
+    shot(&mut h, "info-tags");
+
+    h.state_mut().ws.search = zeroize::Zeroizing::new("example".into());
+    h.state_mut().ws.right = RightPane::None;
+    h.run_steps(5);
+    shot(&mut h, "vault-search");
+    h.state_mut().ws.search = zeroize::Zeroizing::new(String::new());
+
+    h.state_mut().run_command(
+        vault_desktop::commands::Command::CommandPalette,
+        &egui::Context::default(),
+    );
+    h.run_steps(3);
+    type_into_focused(&mut h, "exp");
+    h.run_steps(3);
+    shot(&mut h, "command-palette");
+    h.key_press(Key::Escape);
+    h.run_steps(2);
+
+    let notes = find(&h, "Server notes");
+    h.state_mut().open_doc(notes);
+    h.state_mut().ws.right = RightPane::History;
+    let first = h
+        .state()
+        .session
+        .as_ref()
+        .unwrap()
+        .vault()
+        .document(notes)
+        .unwrap()
+        .history[0]
+        .id;
+    h.state_mut().ws.history_sel = Some(first);
+    h.run_steps(5);
+    shot(&mut h, "history-diff");
+
+    h.state_mut().open_doc(creds);
+    h.state_mut().ws.right = RightPane::None;
+    h.state_mut().ws.focus_mode = true;
+    h.state_mut().ws.editor.find.open = true;
+    h.state_mut().ws.editor.find.query = zeroize::Zeroizing::new("key".into());
+    h.run_steps(5);
+    shot(&mut h, "focus-find");
+    h.state_mut().ws.focus_mode = false;
+    h.state_mut().ws.editor.find.open = false;
+
+    h.state_mut().modal = Some(vault_desktop::app::Modal::Settings);
+    h.state_mut().settings_tab = vault_desktop::app::SettingsTab::About;
+    h.run_steps(8);
+    shot(&mut h, "about-capabilities");
+    h.state_mut().modal = None;
+
+    h.key_press_modifiers(Modifiers::COMMAND | Modifiers::SHIFT, Key::L);
+    wait_until(&mut h, "locked", |a| a.state == LockState::Locked);
+    h.state_mut().screen = Screen::Welcome;
+    h.run_steps(3);
+    shot(&mut h, "welcome");
+}

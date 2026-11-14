@@ -73,5 +73,27 @@ def png(path, size):
     data += chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b"")
     open(path, "wb").write(data)
 
+
+
+def ico(path, sizes=(16, 32, 48, 64, 128, 256)):
+    """Writes a Windows .ico containing PNG-compressed images."""
+    import io, os, tempfile
+    blobs = []
+    for s in sizes:
+        tmp = os.path.join(tempfile.mkdtemp(), "i.png")
+        png(tmp, s)
+        blobs.append((s, open(tmp, "rb").read()))
+    header = struct.pack("<HHH", 0, 1, len(blobs))
+    offset = 6 + 16 * len(blobs)
+    entries, data = b"", b""
+    for s, b in blobs:
+        entries += struct.pack("<BBBBHHII", s % 256, s % 256, 0, 0, 1, 32, len(b), offset + len(data))
+        data += b
+    open(path, "wb").write(header + entries + data)
+
+
 if __name__ == "__main__":
-    png(sys.argv[1], int(sys.argv[2]))
+    if sys.argv[1].endswith(".ico"):
+        ico(sys.argv[1])
+    else:
+        png(sys.argv[1], int(sys.argv[2]))
