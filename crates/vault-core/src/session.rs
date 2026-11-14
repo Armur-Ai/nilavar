@@ -458,6 +458,25 @@ impl Session {
         })
     }
 
+    /// Discards in-memory state and re-reads the vault file from disk with
+    /// the session passphrase (used to resolve a conflict in favor of the
+    /// on-disk version). Fails without changing anything if the file cannot
+    /// be opened.
+    pub fn reload_from_disk(&mut self) -> VaultResult<()> {
+        if self.save_in_flight {
+            return Err(VaultError::new(ErrorCode::Busy));
+        }
+        let (vault, fp) = open_vault_file(&self.path, &self.passphrase)?;
+        self.committed_revision = vault.revision_id;
+        self.committed_parent = vault.parent_revision_id;
+        self.committed_counter = vault.save_counter;
+        self.committed_saved_at = vault.saved_at;
+        self.vault = vault;
+        self.fingerprint = fp;
+        self.saved_generation = self.edit_generation;
+        Ok(())
+    }
+
     /// Verifies a passphrase against the session without touching disk.
     pub fn passphrase_matches(&self, candidate: &Passphrase) -> bool {
         candidate.matches(&self.passphrase)

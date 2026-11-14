@@ -103,7 +103,10 @@ fn encrypted_export_and_plaintext_confirmation() {
     let env = Env::new();
     let (v, id) = create_with_doc(&env);
     let enc = env.p("doc.age");
-    let o = env.run(&["export", s(&v), "--doc", &id, "--out", s(&enc)], &[PASS, "exp", "exp"]);
+    let o = env.run(
+        &["export", s(&v), "--doc", &id, "--out", s(&enc)],
+        &[PASS, "exp", "exp"],
+    );
     assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
     let ct = std::fs::read(&enc).unwrap();
     assert!(ct.starts_with(b"age-encryption.org/v1\n"));
@@ -111,20 +114,51 @@ fn encrypted_export_and_plaintext_confirmation() {
 
     // Plaintext without confirmation: refused, no file.
     let out = env.p("plain.txt");
-    let o = env.run(&["export", s(&v), "--doc", &id, "--out", s(&out), "--plaintext"], &[PASS]);
+    let o = env.run(
+        &[
+            "export",
+            s(&v),
+            "--doc",
+            &id,
+            "--out",
+            s(&out),
+            "--plaintext",
+        ],
+        &[PASS],
+    );
     assert_eq!(o.status.code(), Some(5));
     assert!(!out.exists());
     // Wrong confirmation path: refused.
     let other = env.p("other.txt");
     let o = env.run(
-        &["export", s(&v), "--doc", &id, "--out", s(&out), "--plaintext", "--confirm-plaintext-to", s(&other)],
+        &[
+            "export",
+            s(&v),
+            "--doc",
+            &id,
+            "--out",
+            s(&out),
+            "--plaintext",
+            "--confirm-plaintext-to",
+            s(&other),
+        ],
         &[PASS],
     );
     assert_eq!(o.status.code(), Some(5));
     assert!(!out.exists());
     // Matching confirmation: written, but never to stdout.
     let o = env.run(
-        &["export", s(&v), "--doc", &id, "--out", s(&out), "--plaintext", "--confirm-plaintext-to", s(&out)],
+        &[
+            "export",
+            s(&v),
+            "--doc",
+            &id,
+            "--out",
+            s(&out),
+            "--plaintext",
+            "--confirm-plaintext-to",
+            s(&out),
+        ],
         &[PASS],
     );
     assert!(o.status.success());
@@ -136,10 +170,17 @@ fn encrypted_export_and_plaintext_confirmation() {
 fn change_passphrase_then_old_fails_new_works() {
     let env = Env::new();
     let (v, _) = create_with_doc(&env);
-    let o = env.run(&["change-passphrase", s(&v)], &[PASS, "brand new pass", "brand new pass"]);
+    let o = env.run(
+        &["change-passphrase", s(&v)],
+        &[PASS, "brand new pass", "brand new pass"],
+    );
     assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
     assert_eq!(env.run(&["verify", s(&v)], &[PASS]).status.code(), Some(3));
-    assert!(env.run(&["verify", s(&v)], &["brand new pass"]).status.success());
+    assert!(
+        env.run(&["verify", s(&v)], &["brand new pass"])
+            .status
+            .success()
+    );
 }
 
 #[test]
@@ -147,22 +188,34 @@ fn recover_to_new_vault_and_plaintext_dir() {
     let env = Env::new();
     let (v, _) = create_with_doc(&env);
     let nv = env.p("restored.nvault.age");
-    let o = env.run(&["recover", s(&v), "--to-vault", s(&nv)], &[PASS, "np", "np"]);
+    let o = env.run(
+        &["recover", s(&v), "--to-vault", s(&nv)],
+        &[PASS, "np", "np"],
+    );
     assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
     assert!(env.run(&["verify", s(&nv)], &["np"]).status.success());
 
     let dir = env.p("recovered");
     let o = env.run(
-        &["recover", s(&v), "--plaintext-dir", s(&dir), "--confirm-plaintext-to", s(&dir)],
+        &[
+            "recover",
+            s(&v),
+            "--plaintext-dir",
+            s(&dir),
+            "--confirm-plaintext-to",
+            s(&dir),
+        ],
         &[PASS],
     );
     assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
     assert_no_canary(&o);
     let files: Vec<_> = std::fs::read_dir(&dir).unwrap().flatten().collect();
     assert_eq!(files.len(), 2);
-    assert!(files
-        .iter()
-        .any(|f| std::fs::read_to_string(f.path()).unwrap() == BODY));
+    assert!(
+        files
+            .iter()
+            .any(|f| std::fs::read_to_string(f.path()).unwrap() == BODY)
+    );
 }
 
 #[test]
@@ -174,7 +227,12 @@ fn backup_is_encrypted_and_verifies() {
     assert!(o.status.success());
     assert!(env.run(&["verify", s(&b)], &[PASS]).status.success());
     // Refuses to overwrite.
-    assert_eq!(env.run(&["backup", s(&v), "--out", s(&b)], &[PASS]).status.code(), Some(2));
+    assert_eq!(
+        env.run(&["backup", s(&v), "--out", s(&b)], &[PASS])
+            .status
+            .code(),
+        Some(2)
+    );
 }
 
 #[test]

@@ -32,6 +32,8 @@ pub enum LockReason {
     SystemSleep,
     /// The window was closed.
     WindowClosed,
+    /// The window lost focus (optional setting).
+    FocusLost,
 }
 
 /// Allowlisted diagnostic events.

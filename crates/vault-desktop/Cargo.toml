@@ -1,6 +1,28 @@
 [package]
 name = "vault-desktop"
-version = "0.1.0"
-edition = "2024"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+description = "Nilavar desktop application"
+
+[[bin]]
+name = "nilavar"
+path = "src/main.rs"
 
 [dependencies]
+vault-core = { path = "../vault-core" }
+eframe = "0.37"
+egui = { version = "0.37", default-features = false }
+rfd = "0.18"
+arboard = { version = "3.7", default-features = false }
+zeroize = "1.9"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[lints]
+workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
