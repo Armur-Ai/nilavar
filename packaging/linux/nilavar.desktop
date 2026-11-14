@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Nilavar
+GenericName=Encrypted notes
+Comment=Offline encrypted workspace for notes and secrets (unaudited alpha)
+Exec=nilavar
+Icon=nilavar
+Terminal=false
+Categories=Utility;Security;TextEditor;
+Keywords=vault;encrypted;notes;age;
+StartupWMClass=nilavar

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!--
+      Hardened-runtime entitlements for notarized builds. Intentionally empty:
+      no JIT, no unsigned executable memory, no library-validation bypass,
+      no network client/server entitlements (the app also applies the OS
+      "no-network" sandbox profile to itself at startup).
+    -->
+</dict>
+</plist>
