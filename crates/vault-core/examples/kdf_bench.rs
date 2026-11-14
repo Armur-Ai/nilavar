@@ -7,12 +7,17 @@
 
 use std::time::Instant;
 
-use vault_core::crypto::{self, WorkFactor};
 use vault_core::Passphrase;
+use vault_core::crypto::{self, WorkFactor};
 
 fn main() {
     let pass = Passphrase::from("benchmark passphrase (synthetic)");
-    for (label, size) in [("10 KiB", 10 * 1024), ("1 MiB", 1 << 20), ("8 MiB", 8 << 20), ("32 MiB", 32 << 20)] {
+    for (label, size) in [
+        ("10 KiB", 10 * 1024),
+        ("1 MiB", 1 << 20),
+        ("8 MiB", 8 << 20),
+        ("32 MiB", 32 << 20),
+    ] {
         let plain = vec![b'x'; size];
         let mut enc_ms = Vec::new();
         let mut dec_ms = Vec::new();

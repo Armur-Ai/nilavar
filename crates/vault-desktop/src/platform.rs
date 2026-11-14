@@ -68,6 +68,12 @@ pub struct SystemClipboard {
     inner: Option<arboard::Clipboard>,
 }
 
+impl Default for SystemClipboard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SystemClipboard {
     pub fn new() -> Self {
         Self {
@@ -127,6 +133,12 @@ impl ClipboardBackend for SystemClipboard {
 pub struct SleepDetector {
     wall: SystemTime,
     mono: Instant,
+}
+
+impl Default for SleepDetector {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SleepDetector {

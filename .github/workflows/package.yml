@@ -1,0 +1,46 @@
+name: Package (unsigned)
+
+# Builds UNSIGNED artifacts for inspection. Publishing a release, code
+# signing and notarization are manual steps (docs/RELEASING.md) that use
+# secrets only in a protected environment, never in PR jobs.
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            script: ./scripts/package-macos.sh
+          - os: ubuntu-latest
+            script: ./scripts/package-linux.sh
+          - os: windows-latest
+            script: pwsh ./scripts/package-windows.ps1
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Linux GUI build deps
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libxkbcommon-dev libwayland-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+      - name: SBOM tool
+        if: runner.os != 'Windows'
+        run: cargo install cargo-cyclonedx --locked
+      - run: ${{ matrix.script }}
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nilavar-${{ runner.os }}-unsigned
+          path: |
+            dist/*.zip
+            dist/*.tar.gz
+            dist/SHA256SUMS
+            dist/sbom/

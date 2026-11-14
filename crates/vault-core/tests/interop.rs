@@ -5,6 +5,8 @@
 //! * Live round-trips in both directions run when the tools are installed;
 //!   otherwise they print `SKIPPED` (and fail if NILAVAR_REQUIRE_INTEROP is set).
 
+#![allow(clippy::print_stderr)]
+
 mod common;
 
 use std::path::Path;
