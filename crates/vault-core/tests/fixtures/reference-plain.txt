@@ -1,0 +1,2 @@
+Synthetic fixture text for Nilavar interop tests.
+Unicode: héllo wörld 🔐

@@ -24,3 +24,8 @@ lto = "thin"
 codegen-units = 1
 panic = "unwind"
 strip = "debuginfo"
+
+# Optimize dependencies (notably scrypt) in dev/test builds; first-party
+# crates stay unoptimized for fast iteration.
+[profile.dev.package."*"]
+opt-level = 3

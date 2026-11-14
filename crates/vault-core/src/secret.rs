@@ -222,6 +222,19 @@ impl Passphrase {
         a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
     }
 
+    /// Explicit copy (e.g. to re-verify the current passphrase later).
+    pub fn duplicate(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+
+    /// Reveals the passphrase for an explicit user-requested display (the
+    /// "show passphrase" control or a generated suggestion). Never log it.
+    pub fn reveal(&self) -> &str {
+        self.inner.expose_secret()
+    }
+
     /// The secrecy type expected by the age crate. Crate-private: only the
     /// crypto adapter hands the passphrase to the library.
     pub(crate) fn to_age_secret(&self) -> SecretString {

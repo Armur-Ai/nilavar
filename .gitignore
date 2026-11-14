@@ -21,3 +21,7 @@
 .idea/
 .vscode/
 *.swp
+
+# Synthetic test fixtures are deliberately committed.
+!crates/vault-core/tests/fixtures/*.age
+!fuzz/corpus/**
