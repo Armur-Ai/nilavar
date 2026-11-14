@@ -101,6 +101,7 @@ pub struct EditorState {
     last_cursor_row: Option<Rect>,
     pub cursor: (usize, usize),
     pub selection_chars: usize,
+    cursor_key: Option<(vault_core::ids::DocId, u64, usize)>,
 }
 
 struct LayoutCache {
@@ -120,6 +121,7 @@ impl Default for EditorState {
             last_cursor_row: None,
             cursor: (1, 1),
             selection_chars: 0,
+            cursor_key: None,
         }
     }
 }
@@ -136,6 +138,8 @@ pub struct EditorOptions {
     pub line_numbers: bool,
     pub highlight_line: bool,
     pub mode: DocMode,
+    /// Content revision counter (cache key for cursor line/column).
+    pub rev: u64,
 }
 
 pub struct EditorOutput {
@@ -381,7 +385,11 @@ pub fn show(
                     let p = r.primary.index.0;
                     let sorted = r.as_sorted_char_range();
                     st.selection_chars = sorted.end.0 - sorted.start.0;
-                    st.cursor = textops::line_col(buf.as_str(), p);
+                    let key = (doc_id, opts.rev, p);
+                    if buf.changed || st.cursor_key != Some(key) {
+                        st.cursor = textops::line_col(buf.as_str(), p);
+                        st.cursor_key = if buf.changed { None } else { Some(key) };
+                    }
                     let rect = galley
                         .pos_from_cursor(r.primary)
                         .translate(origin.to_vec2());

@@ -240,11 +240,17 @@ fn status_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
                     if app.ws.editor.selection_chars > 0 {
                         ui.label(small(format!("({} selected)", app.ws.editor.selection_chars), theme::MUTED));
                     }
-                    let info = app
+                    let mode = app
                         .ws
                         .active
                         .and_then(|id| app.session.as_ref().and_then(|s| s.vault().document(id)))
-                        .map(|d| (d.text.char_count(), d.text.expose().split_whitespace().count(), d.mode, d.text.len()));
+                        .map(|d| d.mode);
+                    let info = app
+                        .ws
+                        .active
+                        .and_then(|id| app.doc_stats(id))
+                        .zip(mode)
+                        .map(|((c, w, _, b), m)| (c, w, m, b));
                     if let Some((chars, words, dmode, bytes)) = info.filter(|_| bar_w >= 760.0) {
                         ui.label(small(format!("{chars} chars · {words} words"), theme::MUTED));
                         let mode = match dmode {
@@ -976,6 +982,7 @@ fn center(app: &mut NilavarApp, ui: &mut egui::Ui, narrow: bool) {
             .and_then(|s| s.vault().document(id))
             .map(|d| d.mode)
             .unwrap_or_default(),
+        rev: app.ws.text_rev,
     };
     let max_w = if app.ws.focus_mode {
         860.0

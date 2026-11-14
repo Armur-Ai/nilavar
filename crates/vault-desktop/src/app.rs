@@ -98,6 +98,10 @@ pub struct Workspace {
     pub doc_edit_gen: HashMap<DocId, u64>,
     pub expanded: HashSet<FolderId>,
     pub tags_input: Zeroizing<String>,
+    /// Incremented on every content change (cheap cache key for display stats).
+    pub text_rev: u64,
+    /// Cached (doc, text_rev, chars, words, lines, bytes) for the status bar.
+    pub stats: Option<(DocId, u64, usize, usize, usize, usize)>,
 }
 
 impl Default for Workspace {
@@ -122,6 +126,8 @@ impl Default for Workspace {
             doc_edit_gen: HashMap::new(),
             expanded: HashSet::new(),
             tags_input: Zeroizing::new(String::new()),
+            text_rev: 0,
+            stats: None,
         }
     }
 }
@@ -387,6 +393,7 @@ impl NilavarApp {
 
     /// Records that the active document changed.
     pub fn mark_edited(&mut self, doc: DocId) {
+        self.ws.text_rev = self.ws.text_rev.wrapping_add(1);
         if let Some(s) = self.session.as_mut() {
             s.mark_edited();
             if let Some(d) = s.vault_mut().document_mut(doc) {
@@ -405,6 +412,7 @@ impl NilavarApp {
 
     /// Records a structural change (rename, move, tags, trash…).
     pub fn mark_changed(&mut self) {
+        self.ws.text_rev = self.ws.text_rev.wrapping_add(1);
         if let Some(s) = self.session.as_mut() {
             s.mark_edited();
         }
@@ -420,6 +428,26 @@ impl NilavarApp {
     fn edit_generation(&self) -> u64 {
         // A monotonic counter local to the UI for per-doc dirty tracking.
         self.ws.doc_edit_gen.values().copied().max().unwrap_or(0) + 1
+    }
+
+    /// (chars, words, lines, bytes) of a document, cached per content revision.
+    pub fn doc_stats(&mut self, doc: DocId) -> Option<(usize, usize, usize, usize)> {
+        if let Some((d, rev, c, w, l, b)) = self.ws.stats
+            && d == doc
+            && rev == self.ws.text_rev
+        {
+            return Some((c, w, l, b));
+        }
+        let d = self.session.as_ref()?.vault().document(doc)?;
+        let t = d.text.expose();
+        let stats = (
+            t.chars().count(),
+            t.split_whitespace().count(),
+            t.matches('\n').count() + 1,
+            t.len(),
+        );
+        self.ws.stats = Some((doc, self.ws.text_rev, stats.0, stats.1, stats.2, stats.3));
+        Some(stats)
     }
 
     pub fn doc_is_dirty(&self, doc: DocId) -> bool {
@@ -975,6 +1003,7 @@ impl NilavarApp {
                 );
             }
             (SessionOpKind::Reload, Ok(_)) => {
+                self.ws.text_rev = self.ws.text_rev.wrapping_add(1);
                 self.ws.doc_edit_gen.clear();
                 self.save_status = SaveStatus::Clean;
                 self.ws.tabs.retain(|d| {

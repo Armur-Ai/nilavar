@@ -603,3 +603,58 @@ fn preview_links_require_confirmation_and_never_open_directly() {
     );
     shot(&mut h, "15-link-confirmation");
 }
+
+/// Frame-time check with a near-limit document. Ignored by default (run in
+/// release): `cargo test --release -p vault-desktop --test ui_flows -- --ignored large_document`
+#[test]
+#[ignore]
+fn large_document_frame_times() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("big.nvault.age");
+    let mut v = Vault::new();
+    let id = v.create_document("Large synthetic document", None).unwrap();
+    let line = "- [ ] synthetic line with `code`, **bold** and a [link](https://example.invalid) 0123456789\n";
+    let text: String = line.repeat(vault_core::limits::MAX_DOCUMENT_BYTES * 95 / 100 / line.len());
+    v.document_mut(id).unwrap().text.set(&text);
+    drop(
+        Session::create(
+            &path,
+            Passphrase::from(PASS),
+            v,
+            opts(&dir.path().join("data")),
+        )
+        .unwrap(),
+    );
+    let mut h = harness(dir.path(), &path);
+    unlock(&mut h, PASS);
+    wait_until(&mut h, "unlocked", |a| a.state == LockState::Unlocked);
+    h.state_mut().open_doc(id);
+    h.state_mut().ws.editor.request_focus = true;
+    h.run_steps(3);
+    let idle_frames: u32 = std::env::var("NILAVAR_PERF_FRAMES")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(20);
+    let t = Instant::now();
+    for _ in 0..idle_frames {
+        h.step();
+    }
+    let idle = t.elapsed() / idle_frames;
+    let t = Instant::now();
+    for _ in 0..20 {
+        h.event(egui::Event::Text("x".into()));
+        h.step();
+    }
+    let typing = t.elapsed() / 20;
+    #[allow(clippy::print_stderr)]
+    {
+        eprintln!(
+            "{} KiB document: idle frame {idle:?}, typing frame {typing:?}",
+            text.len() / 1024
+        );
+    }
+    assert!(
+        typing < Duration::from_millis(250),
+        "typing frame too slow: {typing:?}"
+    );
+}

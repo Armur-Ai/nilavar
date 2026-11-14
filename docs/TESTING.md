@@ -67,6 +67,16 @@ Plus repository checks: `scripts/check-hygiene.sh`, `gitleaks --redact`,
 | Accessibility | AccessKit labels on custom widgets | ✅ (UI tests query by label) | — | Screen-reader pass not done |
 | Independent security audit | — | — | — | Not done (prerequisite for stronger claims) |
 
+## Performance notes
+
+`large_document_frame_times` (ignored by default; run with `--release
+--ignored`) opens a ~1.9 MiB document in the headless harness: ~30 ms idle
+and ~80 ms typing frames on an Apple M5 Pro. Profiling (`sample`) shows about
+two thirds of that time in egui's AccessKit text updates, which the harness
+always enables; in the real app AccessKit is built only while assistive
+technology is connected, so very large documents are slower with a screen
+reader active. Saving costs ~0.31 s (scrypt) on a worker thread.
+
 ## Interactive GUI note
 
 The automated UI tests render the real application offscreen. In the
