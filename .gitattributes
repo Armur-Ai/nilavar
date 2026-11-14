@@ -1,0 +1,7 @@
+# Binary/byte-exact test data: never convert line endings.
+crates/vault-core/tests/fixtures/* -text
+fuzz/seeds/** -text
+*.age binary
+*.png binary
+*.ttf binary
+*.ico binary

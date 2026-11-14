@@ -17,4 +17,6 @@ regexes = [
   '''pk_test_EXAMPLE_0000''',
   '''AIzaEXAMPLE-not-real''',
   '''example-not-a-real-key''',
+  # Prose describing the cipher, not a credential.
+  '''ChaCha20-Poly1305''',
 ]

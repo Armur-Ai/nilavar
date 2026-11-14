@@ -1,10 +1,8 @@
 //! Shared helpers for integration tests. All data is synthetic.
 #![allow(dead_code)]
 
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::time::Duration;
 
 use vault_core::crypto::WorkFactor;
 use vault_core::paths::DataDirs;
@@ -45,46 +43,19 @@ pub fn interop_required() -> bool {
     std::env::var_os("NILAVAR_REQUIRE_INTEROP").is_some()
 }
 
-/// Runs a reference tool under a pseudo-terminal (via `script`) and feeds
-/// `answers` (one passphrase per prompt). Returns success.
+/// Runs a reference tool under a pseudo-terminal (via `tests/pty_drive.py`)
+/// and answers each passphrase prompt in order. Returns success.
 pub fn run_with_pty(tool: &Path, args: &[&str], answers: &[&str]) -> bool {
-    let mut cmd = Command::new("script");
-    if cfg!(target_os = "macos") {
-        cmd.arg("-q").arg("/dev/null").arg(tool).args(args);
-    } else {
-        let mut line = shell_quote(&tool.to_string_lossy());
-        for a in args {
-            line.push(' ');
-            line.push_str(&shell_quote(a));
-        }
-        cmd.arg("-q").arg("-e").arg("-c").arg(line).arg("/dev/null");
-    }
+    let driver = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/pty_drive.py");
+    let mut cmd = Command::new("python3");
+    cmd.arg(driver).args(answers).arg("--").arg(tool).args(args);
     // Keep pinentry off PATH so rage prompts on the terminal.
     cmd.env("PATH", "/usr/bin:/bin");
-    cmd.stdin(Stdio::piped())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
-    let Ok(mut child) = cmd.spawn() else {
-        return false;
-    };
-    let mut stdin = child.stdin.take().expect("stdin");
-    for a in answers {
-        std::thread::sleep(Duration::from_millis(600));
-        let _ = stdin.write_all(a.as_bytes());
-        let _ = stdin.write_all(b"\n");
-        let _ = stdin.flush();
-    }
-    // Wait up to ~20s for completion while keeping stdin open.
-    for _ in 0..200 {
-        if let Ok(Some(status)) = child.try_wait() {
-            return status.success();
-        }
-        std::thread::sleep(Duration::from_millis(100));
-    }
-    let _ = child.kill();
-    false
+    cmd.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    cmd.status().map(|s| s.success()).unwrap_or(false)
 }
 
+#[allow(dead_code)]
 fn shell_quote(s: &str) -> String {
     format!("'{}'", s.replace('\'', "'\\''"))
 }

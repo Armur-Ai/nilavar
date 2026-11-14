@@ -11,6 +11,7 @@ ROOT="$(mktemp -d)/nilavar"
 install -Dm755 target/release/nilavar "$ROOT/usr/bin/nilavar"
 install -Dm755 target/release/nilavar-cli "$ROOT/usr/bin/nilavar-cli"
 install -Dm644 packaging/linux/nilavar.desktop "$ROOT/usr/share/applications/nilavar.desktop"
+mkdir -p "$ROOT/usr/share/icons/hicolor/256x256/apps"
 python3 tools/make_icon.py "$ROOT/usr/share/icons/hicolor/256x256/apps/nilavar.png" 256
 install -Dm644 LICENSE "$ROOT/usr/share/doc/nilavar/copyright"
 install -Dm644 docs/USER_GUIDE.md "$ROOT/usr/share/doc/nilavar/USER_GUIDE.md"

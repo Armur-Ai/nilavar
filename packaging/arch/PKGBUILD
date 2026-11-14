@@ -36,6 +36,7 @@ package() {
   install -Dm755 target/release/nilavar "$pkgdir/usr/bin/nilavar"
   install -Dm755 target/release/nilavar-cli "$pkgdir/usr/bin/nilavar-cli"
   install -Dm644 packaging/linux/nilavar.desktop "$pkgdir/usr/share/applications/nilavar.desktop"
+  install -d "$pkgdir/usr/share/icons/hicolor/256x256/apps"
   python tools/make_icon.py "$pkgdir/usr/share/icons/hicolor/256x256/apps/nilavar.png" 256
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm644 docs/USER_GUIDE.md "$pkgdir/usr/share/doc/$pkgname/USER_GUIDE.md"
