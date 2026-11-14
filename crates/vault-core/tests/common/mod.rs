@@ -51,7 +51,9 @@ pub fn run_with_pty(tool: &Path, args: &[&str], answers: &[&str]) -> bool {
     cmd.arg(driver).args(answers).arg("--").arg(tool).args(args);
     // Keep pinentry off PATH so rage prompts on the terminal.
     cmd.env("PATH", "/usr/bin:/bin");
-    cmd.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+    cmd.stdin(Stdio::null())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
     cmd.status().map(|s| s.success()).unwrap_or(false)
 }
 
