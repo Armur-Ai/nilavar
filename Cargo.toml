@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
 members = ["crates/vault-core", "crates/vault-desktop", "crates/vault-cli"]
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.1.0-alpha.1"

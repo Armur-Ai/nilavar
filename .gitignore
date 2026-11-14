@@ -1,8 +1,8 @@
 # Build output
 /target/
 /fuzz/target/
-/fuzz/corpus/*/
-!/fuzz/corpus/.gitkeep
+/fuzz/corpus/
+/fuzz/coverage/
 /fuzz/artifacts/
 /dist/
 
@@ -24,4 +24,4 @@
 
 # Synthetic test fixtures are deliberately committed.
 !crates/vault-core/tests/fixtures/*.age
-!fuzz/corpus/**
+!fuzz/seeds/**

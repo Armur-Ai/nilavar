@@ -1,0 +1,53 @@
+[package]
+name = "vault-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+vault-core = { path = "../crates/vault-core" }
+
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "payload_decode"
+path = "fuzz_targets/payload_decode.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "encrypted_import"
+path = "fuzz_targets/encrypted_import.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "revision_validation"
+path = "fuzz_targets/revision_validation.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "markdown_parse"
+path = "fuzz_targets/markdown_parse.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "text_ops"
+path = "fuzz_targets/text_ops.rs"
+test = false
+doc = false
+bench = false
