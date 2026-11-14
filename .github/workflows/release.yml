@@ -130,7 +130,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="${GITHUB_REF_NAME}"
-          pre=""
-          case "$tag" in *alpha*|*beta*|*rc*) pre="--prerelease";; esac
-          gh release create "$tag" release/* --repo "$GITHUB_REPOSITORY" $pre \
-            --title "Nilavar $tag" --notes-file .github/RELEASE_NOTES.md
+          # Marked "latest" (not pre-release) even for alpha tags so the
+          # README/website releases/latest/download/... buttons resolve; the
+          # title and notes state the release stage.
+          stage=""
+          case "$tag" in *alpha*) stage=" (unaudited alpha)";; *beta*) stage=" (beta)";; *rc*) stage=" (release candidate)";; esac
+          gh release create "$tag" release/* --repo "$GITHUB_REPOSITORY" --latest \
+            --title "Nilavar $tag$stage" --notes-file .github/RELEASE_NOTES.md
