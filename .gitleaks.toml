@@ -1,0 +1,20 @@
+# gitleaks configuration. Run with --redact so findings never print secrets:
+#   gitleaks git --redact --config .gitleaks.toml .
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Deliberately synthetic test fixtures and documentation examples"
+paths = [
+  '''crates/vault-core/tests/fixtures/.*\.age$''',
+  '''fuzz/seeds/.*''',
+  # Build output (contains third-party crates' documentation test vectors).
+  '''(^|/)target/''',
+  '''^dist/''',
+]
+regexes = [
+  '''NVCANARY-[A-Za-z0-9-]+''',
+  '''pk_test_EXAMPLE_0000''',
+  '''AIzaEXAMPLE-not-real''',
+  '''example-not-a-real-key''',
+]

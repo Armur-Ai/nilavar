@@ -1,0 +1,10 @@
+# Mirrors the justified ignores in deny.toml (see docs/DEPENDENCIES.md).
+[advisories]
+ignore = [
+  "RUSTSEC-2026-0387", # crypto-bigint via age P-256 recipients: unreachable in passphrase mode
+  "RUSTSEC-2026-0374", # basic-toml: build-time proc-macro (age i18n)
+  "RUSTSEC-2026-0192", # ttf-parser: Linux Wayland decorations
+  "RUSTSEC-2026-0370", # zvariant: Linux accessibility (merged into zbus)
+  "RUSTSEC-2026-0371", # zbus_names
+  "RUSTSEC-2026-0372", # zvariant_derive
+]

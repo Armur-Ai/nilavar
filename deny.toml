@@ -1,0 +1,73 @@
+# cargo-deny policy: run `cargo deny check`.
+[graph]
+all-features = false
+# Only the platforms we build and ship (no wasm32).
+targets = [
+  "aarch64-apple-darwin",
+  "x86_64-apple-darwin",
+  "x86_64-unknown-linux-gnu",
+  "aarch64-unknown-linux-gnu",
+  "x86_64-pc-windows-msvc",
+]
+
+[advisories]
+version = 2
+yanked = "deny"
+# Every ignore needs a written, re-checked justification (docs/DEPENDENCIES.md).
+ignore = [
+  # crypto-bigint 0.5 timing variability. Reached only through age's P-256
+  # (tag/tagpq/HPKE) recipient types via elliptic-curve 0.13; Nilavar only
+  # uses age's scrypt passphrase recipient, so the affected code is never
+  # executed. No upgrade available while age pins elliptic-curve 0.13.
+  { id = "RUSTSEC-2026-0387", reason = "unreachable: P-256 recipient code unused; pinned by age 0.12.1" },
+  # basic-toml unmaintained: build-time proc-macro dependency of age's i18n
+  # message embedding; not present in the shipped binary's runtime logic.
+  { id = "RUSTSEC-2026-0374", reason = "build-time proc-macro only (age i18n)" },
+  # ttf-parser unmaintained: Linux/Wayland client-side decorations (sctk-adwaita via winit).
+  { id = "RUSTSEC-2026-0192", reason = "Linux Wayland decorations via winit; no fix available" },
+  # zvariant / zbus_names / zvariant_derive merged into zbus: Linux AT-SPI accessibility via accesskit.
+  { id = "RUSTSEC-2026-0370", reason = "Linux accessibility stack via accesskit; crates merged upstream" },
+  { id = "RUSTSEC-2026-0371", reason = "Linux accessibility stack via accesskit; crates merged upstream" },
+  { id = "RUSTSEC-2026-0372", reason = "Linux accessibility stack via accesskit; crates merged upstream" },
+]
+
+[licenses]
+version = 2
+confidence-threshold = 0.9
+allow = [
+  "MIT",
+  "Apache-2.0",
+  "Apache-2.0 WITH LLVM-exception",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "Unicode-3.0",
+  "CC0-1.0",
+  "MPL-2.0",
+  "OFL-1.1",
+  "Ubuntu-font-1.0",
+  "BSL-1.0",
+  "0BSD",
+  "CDLA-Permissive-2.0",
+]
+
+[bans]
+multiple-versions = "allow"
+wildcards = "deny"
+allow-wildcard-paths = true
+deny = [
+  # No HTTP/TLS clients or async network runtimes in this offline app.
+  { name = "reqwest" },
+  { name = "hyper" },
+  { name = "ureq" },
+  { name = "curl" },
+  { name = "native-tls" },
+  { name = "rustls" },
+  { name = "tokio" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
