@@ -1,0 +1,23 @@
+# Build output
+/target/
+/fuzz/target/
+/fuzz/corpus/*/
+!/fuzz/corpus/.gitkeep
+/fuzz/artifacts/
+/dist/
+
+# Local vault and application data artifacts.
+# NOTE: ignore rules are a convenience to avoid accidental commits. They are NOT
+# an access-control boundary — anything on disk is readable by your user account.
+*.nvault.age
+*.age
+*.nvault.age.tmp
+.nilavar-*/
+/.dev-data/
+/test-data-out/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
