@@ -137,10 +137,10 @@ impl eframe::App for NilavarApp {
 }
 
 /// Capabilities detected for this process (after hardening).
-pub fn detect_capabilities(core_dumps_disabled: bool) -> Capabilities {
+pub fn detect_capabilities(core_dumps_disabled: bool, network_sandbox: bool) -> Capabilities {
     Capabilities {
         no_app_networking: true,
-        os_network_sandbox: platform::in_macos_sandbox(),
+        os_network_sandbox: network_sandbox || platform::in_macos_sandbox(),
         core_dumps_disabled,
         sleep_lock_signals: true,
         clipboard_privacy_hints: platform::SystemClipboard::privacy_hints_supported(),
@@ -151,12 +151,14 @@ pub fn detect_capabilities(core_dumps_disabled: bool) -> Capabilities {
 pub fn run() -> eframe::Result {
     platform::install_panic_hook();
     let core_dumps_disabled = platform::disable_core_dumps();
+    // Deny all network access before any other thread starts.
+    let network_sandbox = platform::deny_network();
 
     let data = match DataDirs::resolve() {
         Ok(d) => d,
         Err(_) => DataDirs::at(std::env::temp_dir().join("nilavar-fallback")),
     };
-    let caps = detect_capabilities(core_dumps_disabled);
+    let caps = detect_capabilities(core_dumps_disabled, network_sandbox);
 
     let icon = eframe::icon_data::from_png_bytes(include_bytes!("../assets/icon-256.png")).ok();
     let mut viewport = egui::ViewportBuilder::default()

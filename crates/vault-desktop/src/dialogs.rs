@@ -1231,8 +1231,8 @@ fn about_tab(app: &mut NilavarApp, ui: &mut egui::Ui) {
     row(
         ui,
         c.os_network_sandbox,
-        "Running inside the macOS App Sandbox without the network entitlement (OS-enforced).",
-        "Not running in an OS sandbox: \"no networking\" is a property of the code, not enforced by the OS here.",
+        "OS network sandbox active: the kernel denies all socket access for this process (macOS no-network profile).",
+        "No OS network sandbox on this platform/build: \"no networking\" is a property of the code, not enforced by the OS here.",
     );
     row(
         ui,

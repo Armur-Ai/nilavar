@@ -269,7 +269,7 @@ fn status_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(small(format!("{} no network features", icon::WIFI_SLASH), theme::MUTED))
                         .on_hover_text(if app.caps.os_network_sandbox {
-                            "This app implements no networking, and the OS sandbox denies network access."
+                            "This app implements no networking, and the macOS no-network sandbox makes the kernel deny all sockets for this process."
                         } else {
                             "This app implements no networking. No OS sandbox is enforcing that in this build — see Security & capabilities."
                         });

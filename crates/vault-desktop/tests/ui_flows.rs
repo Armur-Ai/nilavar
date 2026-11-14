@@ -87,7 +87,8 @@ fn harness(dir: &Path, vault: &Path) -> Harness<'static, NilavarApp> {
         .with_max_steps(1_000_000)
         .wgpu()
         .build_eframe(move |cc| {
-            let mut app = NilavarApp::new(cc, data, vault_desktop::detect_capabilities(false));
+            let mut app =
+                NilavarApp::new(cc, data, vault_desktop::detect_capabilities(false, false));
             app.work = WorkFactor::TESTING;
             app.settings.reduce_motion = true;
             app.screen = unlock_screen(vault);
@@ -393,7 +394,8 @@ fn create_settings_empty_and_narrow_screens_render() {
         .with_max_steps(1_000_000)
         .wgpu()
         .build_eframe(move |cc| {
-            let mut app = NilavarApp::new(cc, data, vault_desktop::detect_capabilities(false));
+            let mut app =
+                NilavarApp::new(cc, data, vault_desktop::detect_capabilities(false, false));
             app.work = WorkFactor::TESTING;
             app.settings.reduce_motion = true;
             app

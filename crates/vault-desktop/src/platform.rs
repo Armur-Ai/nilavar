@@ -2,7 +2,8 @@
 //! sleep detection.
 //!
 //! The only `unsafe` in first-party code lives in [`disable_core_dumps`]
-//! (two documented libc calls). Everything else is safe Rust.
+//! (documented libc calls) and [`deny_network`] (the macOS `sandbox_init`
+//! call). Everything else is safe Rust.
 
 use std::time::{Duration, Instant, SystemTime};
 
@@ -148,6 +149,42 @@ impl SleepDetector {
         self.mono = mono_now;
         wall_dt > mono_dt + Self::THRESHOLD
     }
+}
+
+/// Applies the operating system's built-in "no-network" sandbox profile to
+/// this process (macOS). After it succeeds the kernel denies every socket
+/// operation — TCP, UDP and DNS lookups — for the rest of the process's
+/// life, while file access (needed for user-chosen vault locations, atomic
+/// same-directory saves and the file picker) is unaffected.
+///
+/// Returns whether the sandbox is active. It cannot be removed once applied.
+#[cfg(target_os = "macos")]
+#[allow(unsafe_code)]
+pub fn deny_network() -> bool {
+    use std::ffi::c_char;
+    unsafe extern "C" {
+        fn sandbox_init(profile: *const c_char, flags: u64, errorbuf: *mut *mut c_char) -> i32;
+        fn sandbox_free_error(errorbuf: *mut c_char);
+    }
+    const SANDBOX_NAMED: u64 = 1;
+    let mut err: *mut c_char = std::ptr::null_mut();
+    // SAFETY: `sandbox_init` receives a NUL-terminated static C string naming
+    // a built-in profile (`kSBXProfileNoNetwork` == "no-network") and a valid
+    // out-pointer for an error buffer. On failure the buffer it allocated is
+    // released with `sandbox_free_error`, as documented in <sandbox.h>.
+    let rc = unsafe { sandbox_init(c"no-network".as_ptr(), SANDBOX_NAMED, &mut err) };
+    if !err.is_null() {
+        // SAFETY: `err` was allocated by `sandbox_init` and is freed once.
+        unsafe { sandbox_free_error(err) };
+    }
+    rc == 0
+}
+
+/// Network sandboxing is not implemented on this platform (documented in
+/// docs/SECURITY.md's capability matrix).
+#[cfg(not(target_os = "macos"))]
+pub fn deny_network() -> bool {
+    false
 }
 
 /// Whether this process runs inside the macOS App Sandbox.

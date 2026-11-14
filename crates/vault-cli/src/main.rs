@@ -12,7 +12,7 @@
 //!   an explicit destination and a confirmation naming that destination;
 //! * errors are reported as fixed codes.
 
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 #![allow(clippy::print_stdout, clippy::print_stderr)]
 
 use std::io::{self, BufRead, IsTerminal, Write};
@@ -238,7 +238,34 @@ fn opts(work: WorkFactor, lock: bool) -> Result<SessionOptions, VaultError> {
     Ok(o)
 }
 
+/// macOS: apply the built-in "no-network" sandbox profile so the kernel
+/// denies all sockets for this process (file access is unaffected).
+#[cfg(target_os = "macos")]
+#[allow(unsafe_code)]
+fn deny_network() -> bool {
+    use std::ffi::c_char;
+    unsafe extern "C" {
+        fn sandbox_init(profile: *const c_char, flags: u64, errorbuf: *mut *mut c_char) -> i32;
+        fn sandbox_free_error(errorbuf: *mut c_char);
+    }
+    let mut err: *mut c_char = std::ptr::null_mut();
+    // SAFETY: NUL-terminated static profile name, valid out-pointer; the
+    // error buffer (if any) is released once with `sandbox_free_error`.
+    let rc = unsafe { sandbox_init(c"no-network".as_ptr(), 1, &mut err) };
+    if !err.is_null() {
+        // SAFETY: allocated by `sandbox_init`, freed exactly once.
+        unsafe { sandbox_free_error(err) };
+    }
+    rc == 0
+}
+
+#[cfg(not(target_os = "macos"))]
+fn deny_network() -> bool {
+    false
+}
+
 fn main() -> ExitCode {
+    let _ = deny_network();
     std::panic::set_hook(Box::new(|info| {
         // Never print panic payloads: they can contain fragments of data.
         let loc = info
