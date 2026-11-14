@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nilavar — your secrets in one encrypted file, offline forever</title>
+<meta name="description" content="Nilavar is a free, open-source, offline encrypted notebook for passwords, recovery codes, keys and private notes. One encrypted file. No internet. No accounts. No cloud.">
+<meta property="og:title" content="Nilavar — offline encrypted workspace">
+<meta property="og:description" content="Your secrets in one encrypted file. No internet, no accounts, no servers to fail.">
+<meta property="og:image" content="assets/img/welcome.jpg">
+<meta name="theme-color" content="#050908">
+<link rel="icon" href="favicon.png">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<canvas id="rain" aria-hidden="true"></canvas>
+
+<header class="topbar">
+  <a class="brand" href="#top"><span class="dot"></span>NILAVAR</a>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#tour">Tour</a>
+    <a href="#how">How it works</a>
+    <a href="#guide">Guide</a>
+    <a href="#faq">FAQ</a>
+    <a class="gh" href="https://github.com/Armur-Ai/nilavar">GitHub</a>
+  </nav>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-card">
+    <div class="card-head">
+      <img src="assets/img/icon.png" alt="" width="44" height="44">
+      <div>
+        <div class="title"><span class="dot"></span>NILAVAR</div>
+        <div class="mono muted small">offline encrypted workspace</div>
+      </div>
+      <span class="ver mono">v0.1.0-alpha</span>
+    </div>
+    <h1>Your secrets in <span class="g">one encrypted file</span>.<br>Offline. Forever.</h1>
+    <p class="lead">A private notebook for passwords, recovery codes, API keys and notes that never touches the internet. No accounts. No cloud. No servers to fail.</p>
+    <div class="term mono" aria-label="Status line">
+      <span class="g">●</span> SAVED <span class="sep">│</span> age · scrypt <span class="sep">│</span> no network features <span class="cursor">▍</span>
+    </div>
+    <div class="dl" id="download">
+      <a class="btn primary" data-os="mac" href="https://github.com/Armur-Ai/nilavar/releases/latest/download/Nilavar-macOS-universal.dmg"><span class="ico">⌘</span> Download for macOS<small>.dmg · Apple Silicon &amp; Intel</small></a>
+      <a class="btn primary" data-os="win" href="https://github.com/Armur-Ai/nilavar/releases/latest/download/Nilavar-Windows-x64.exe"><span class="ico">⊞</span> Download for Windows<small>.exe · Windows 10/11</small></a>
+      <a class="btn" data-os="deb" href="https://github.com/Armur-Ai/nilavar/releases/latest/download/nilavar_amd64.deb"><span class="ico">◢</span> Kali · Debian · Ubuntu<small>.deb</small></a>
+      <a class="btn" data-os="arch" href="https://github.com/Armur-Ai/nilavar/releases/latest/download/nilavar-x86_64.pkg.tar.zst"><span class="ico">▲</span> Arch · BlackArch<small>pacman package</small></a>
+      <a class="btn" data-os="linux" href="https://github.com/Armur-Ai/nilavar/releases/latest/download/nilavar-linux-x86_64.tar.gz"><span class="ico">$</span> Any Linux<small>.tar.gz</small></a>
+    </div>
+    <p class="tiny muted">Free &amp; open source (MIT) · <a href="https://github.com/Armur-Ai/nilavar/releases/latest">all downloads &amp; checksums</a> · unaudited alpha — keep backups</p>
+  </div>
+  <figure class="hero-shot">
+    <img src="assets/img/editor-preview.jpg" alt="Nilavar editor with Markdown preview, folders and tags (example data)" loading="eager">
+  </figure>
+</section>
+
+<!-- STRIP -->
+<section class="strip mono">
+  <div><b>0</b><span>network connections</span></div>
+  <div><b>1</b><span>file holds everything</span></div>
+  <div><b>256-bit</b><span>keys, fresh every save</span></div>
+  <div><b>0</b><span>accounts or subscriptions</span></div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="section">
+  <p class="eyebrow mono">// why nilavar</p>
+  <h2>Everything a password notebook should be. Nothing it shouldn't.</h2>
+  <div class="grid">
+    <article class="feat"><div class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11V8a6 6 0 0 1 12 0v3"/><rect x="4" y="11" width="16" height="10" rx="2"/><circle cx="12" cy="16" r="1.5"/></svg></div><h3>One file holds everything</h3><p>Every note, title, folder, tag, version and deleted item lives inside a single encrypted <code>.nvault.age</code> file. Nothing readable is left on disk.</p></article>
+    <article class="feat"><div class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 2l20 20"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.5a10 10 0 0 1 5-2.6"/><path d="M14 10a10 10 0 0 1 5 2.5"/><path d="M1.5 9a15 15 0 0 1 4.5-3"/><path d="M10 4.6A15 15 0 0 1 22.5 9"/><circle cx="12" cy="20" r="1"/></svg></div><h3>Zero internet. Zero accounts.</h3><p>No sync servers, telemetry, update checks or crash uploads — there's no networking code at all. On macOS it even tells the kernel to block every connection.</p></article>
+    <article class="feat"><div class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg></div><h3>Your data travels as a file</h3><p>Copy the vault to a USB stick, Google Drive, Dropbox or an email to yourself. Open it on any computer with the same passphrase.</p></article>
+    <article class="feat"><div class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div><h3>Serious, modern encryption</h3><p>Standard <a href="https://age-encryption.org">age</a> format: 256-bit keys, ChaCha20-Poly1305, and scrypt to make every guess slow and memory-hungry.</p></article>
+    <article class="feat"><div class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></div><h3>Nothing gets lost</h3><p>Encrypted version history with diffs and one-click restore, a trash, automatic encrypted recovery copies, backups and crash-safe saving.</p></article>
+    <article class="feat"><div class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="9" r="2.5"/><path d="M6 8.5v7"/><path d="M18 11.5c0 4-6 3-11 5"/></svg></div><h3>Never silently overwrites</h3><p>Changed the same vault on two computers? Nilavar notices and keeps your version as a separate encrypted conflict copy.</p></article>
+    <article class="feat"><div class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M15 12h.01"/><path d="M2 21h20"/></svg></div><h3>Locks itself</h3><p>On idle, on sleep, when your screen locks, or with one keystroke. Copied passwords are wiped from the clipboard after 30 seconds.</p></article>
+    <article class="feat"><div class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/></svg></div><h3>A real editor</h3><p>Tabs, folders, tags, vault-wide search, find &amp; replace, command palette, Markdown with a safe live preview, checklists, focus mode.</p></article>
+  </div>
+</section>
+
+<!-- APOCALYPSE -->
+<section class="section bunker">
+  <div class="bunker-inner">
+    <p class="eyebrow mono amber">// built to outlast</p>
+    <h2>Built to survive the apocalypse.</h2>
+    <p class="muted">Most "secure" apps are a login page in front of someone else's server. When the company shuts down, gets breached or the internet goes dark, your data goes with it. Nilavar works the other way around.</p>
+    <ul class="checks">
+      <li><b>No servers to go down.</b> Nothing to shut off. It runs entirely on your machine.</li>
+      <li><b>No subscription, no expiry.</b> Download once; it works offline indefinitely.</li>
+      <li><b>Zero connectivity required.</b> No Wi-Fi, no signal, air-gapped laptop in a bunker — it doesn't care.</li>
+      <li><b>One portable file.</b> Keep copies on a USB stick, an old laptop and a fireproof box. Any copy + your passphrase brings everything back.</li>
+      <li><b>Readable without us.</b> The open age format means <code>age -d vault.nvault.age</code> still recovers your notes if Nilavar ever disappears.</li>
+      <li><b>No secret held hostage.</b> No recovery service, no backdoor, no master key to steal or subpoena.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- TOUR -->
+<section id="tour" class="section">
+  <p class="eyebrow mono">// take the tour</p>
+  <h2>A terminal-grade workspace that's a joy to use.</h2>
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-shot="editor-preview" data-cap="Folders and tags on the left, a keyboard-first editor with line numbers and Markdown highlighting, and a safe live preview — no web view, no remote images, links only open after you confirm.">Workspace</button>
+    <button class="tab" data-shot="command-palette" data-cap="Every action is a few keystrokes away (⇧⌘P). The palette runs app actions only — never shell commands.">Command palette</button>
+    <button class="tab" data-shot="vault-search" data-cap="Search titles, tags and text across the whole vault with highlighted snippets — computed in memory, never written to disk.">Vault search</button>
+    <button class="tab" data-shot="history-diff" data-cap="Compare any saved version with the current text and restore it in one click. History is encrypted too.">History &amp; diff</button>
+    <button class="tab" data-shot="focus-find" data-cap="Distraction-free focus mode with find &amp; replace, match highlighting and counts.">Focus &amp; find</button>
+    <button class="tab" data-shot="info-tags" data-cap="Metadata, tags and per-note actions: encrypted export, pin, copy with auto-clear.">Info &amp; tags</button>
+    <button class="tab" data-shot="about-capabilities" data-cap="An honest security panel showing exactly which protections are active on your computer — no fake indicators.">Security panel</button>
+    <button class="tab" data-shot="lock" data-cap="The workspace is masked the instant it locks. Unlocking takes about a third of a second of deliberate key-stretching.">Lock screen</button>
+  </div>
+  <figure class="window">
+    <div class="chrome"><span></span><span></span><span></span><em class="mono">Nilavar — vault.nvault.age</em></div>
+    <img id="shot" src="assets/img/editor-preview.jpg" alt="Nilavar screenshot (example data)">
+  </figure>
+  <p id="cap" class="cap muted">Folders and tags on the left, a keyboard-first editor with line numbers and Markdown highlighting, and a safe live preview — no web view, no remote images, links only open after you confirm.</p>
+  <p class="tiny muted center">All screenshots show made-up example data, rendered from the real app.</p>
+</section>
+
+<!-- HOW -->
+<section id="how" class="section">
+  <p class="eyebrow mono">// how it works</p>
+  <h2>No sync. No cloud. Just a file you carry.</h2>
+  <p class="muted narrow">Because Nilavar is not a web app and never connects to the internet, there's no automatic sync between devices — and that's the point. You move the encrypted file yourself; it's safe to put anywhere.</p>
+  <div class="flow">
+    <div class="node"><div class="mono g">01</div><h3>Create</h3><p>Make a vault and choose a passphrase (or let Nilavar suggest seven random words).</p></div>
+    <div class="arrow mono">→</div>
+    <div class="node"><div class="mono g">02</div><h3>Write</h3><p>Everything saves automatically — encrypted — into one <code>.nvault.age</code> file.</p></div>
+    <div class="arrow mono">→</div>
+    <div class="node"><div class="mono g">03</div><h3>Carry</h3><p>Copy the file by USB, Google Drive, Dropbox, AirDrop or email.</p></div>
+    <div class="arrow mono">→</div>
+    <div class="node"><div class="mono g">04</div><h3>Open anywhere</h3><p>Install Nilavar on the other computer and open the file with the same passphrase.</p></div>
+  </div>
+  <pre class="ascii mono" aria-label="Diagram: copy the encrypted file between computers">  Laptop                                  Any other computer
+  ┌──────────────────┐   USB · Drive ·    ┌──────────────────┐
+  │ vault.nvault.age │ ── Dropbox · ───▶  │ vault.nvault.age │
+  │   (encrypted)    │    email          │ same passphrase  │
+  └──────────────────┘                    └──────────────────┘</pre>
+</section>
+
+<!-- SECURITY -->
+<section class="section">
+  <p class="eyebrow mono">// security, in plain words</p>
+  <h2>Real cryptography. Honest claims.</h2>
+  <div class="sec">
+    <div><h3>Encryption</h3><p><a href="https://age-encryption.org">age</a> v1 passphrase mode: scrypt key stretching (~0.3 s per unlock, by design) and ChaCha20-Poly1305 with 256-bit keys. Nilavar invents no cryptography.</p></div>
+    <div><h3>What's hidden</h3><p>Everything inside: titles, folders, tags, text, history, trash. Outsiders see only a file's name, size and dates.</p></div>
+    <div><h3>Tamper-proof</h3><p>Change a single bit and the vault refuses to open rather than show corrupted data.</p></div>
+    <div><h3>No internet</h3><p>No networking code at all. On macOS the operating system kernel blocks the app's network access entirely.</p></div>
+    <div><h3>Memory &amp; clipboard</h3><p>Self-wiping buffers, workspace wiped on lock, clipboard auto-clear, crash dumps disabled.</p></div>
+    <div><h3>Status</h3><p>An <b>unaudited alpha</b> with 100+ automated tests, fuzzing and interop tests against the reference age tools. Keep backups.</p></div>
+  </div>
+</section>
+
+<!-- GUIDE -->
+<section id="guide" class="section">
+  <p class="eyebrow mono">// get started — no tech skills needed</p>
+  <h2>Up and running in five minutes.</h2>
+  <div class="ostabs" role="tablist">
+    <button class="ostab active" data-os="mac">macOS</button>
+    <button class="ostab" data-os="win">Windows</button>
+    <button class="ostab" data-os="deb">Kali / Debian / Ubuntu</button>
+    <button class="ostab" data-os="arch">Arch / BlackArch</button>
+  </div>
+  <div class="ospanel" data-os="mac">
+    <ol>
+      <li>Download <a href="https://github.com/Armur-Ai/nilavar/releases/latest/download/Nilavar-macOS-universal.dmg"><code>Nilavar-macOS-universal.dmg</code></a> and double-click it.</li>
+      <li>Drag <b>Nilavar</b> into <b>Applications</b>.</li>
+      <li>First time only: <b>right-click</b> Nilavar → <b>Open</b> → <b>Open</b>. (It's a free app not registered with Apple; if there's no Open button, use <b>System Settings → Privacy &amp; Security → Open Anyway</b>.)</li>
+    </ol>
+  </div>
+  <div class="ospanel" data-os="win" hidden>
+    <ol>
+      <li>Download <a href="https://github.com/Armur-Ai/nilavar/releases/latest/download/Nilavar-Windows-x64.exe"><code>Nilavar-Windows-x64.exe</code></a>.</li>
+      <li>Double-click it. If you see <b>"Windows protected your PC"</b>, click <b>More info → Run anyway</b> (the app isn't code-signed).</li>
+      <li>Tip: keep the .exe in a folder like <i>Documents\Nilavar</i> and pin it to the taskbar.</li>
+    </ol>
+  </div>
+  <div class="ospanel" data-os="deb" hidden>
+    <ol>
+      <li>Download <a href="https://github.com/Armur-Ai/nilavar/releases/latest/download/nilavar_amd64.deb"><code>nilavar_amd64.deb</code></a>.</li>
+      <li>Install: <code class="cmd">sudo apt install ./nilavar_amd64.deb</code></li>
+      <li>Open <b>Nilavar</b> from your applications menu.</li>
+    </ol>
+  </div>
+  <div class="ospanel" data-os="arch" hidden>
+    <ol>
+      <li>Download <a href="https://github.com/Armur-Ai/nilavar/releases/latest/download/nilavar-x86_64.pkg.tar.zst"><code>nilavar-x86_64.pkg.tar.zst</code></a>.</li>
+      <li>Install: <code class="cmd">sudo pacman -U nilavar-x86_64.pkg.tar.zst</code></li>
+      <li>Or build from source with the <a href="https://github.com/Armur-Ai/nilavar/blob/main/packaging/arch/PKGBUILD">PKGBUILD</a>: <code class="cmd">makepkg -si</code></li>
+    </ol>
+  </div>
+
+  <div class="steps">
+    <div class="step"><span class="n mono">1</span><div><h3>Create a vault</h3><p>Click <b>Create new vault…</b>, choose where to save it (Documents, or a Google Drive / Dropbox folder for an off-site copy).</p></div></div>
+    <div class="step"><span class="n mono">2</span><div><h3>Pick a passphrase</h3><p>Click <b>Suggest a passphrase</b> for seven random words. <b>Write it on paper.</b> There's no reset — not even we can open your vault.</p></div></div>
+    <div class="step"><span class="n mono">3</span><div><h3>Write</h3><p><kbd>⌘N</kbd> new note, <kbd>⌘P</kbd> jump to a note, <kbd>⇧⌘P</kbd> commands, <kbd>⇧⌘L</kbd> lock. (Ctrl instead of ⌘ on Windows/Linux.) It saves automatically.</p></div></div>
+    <div class="step"><span class="n mono">4</span><div><h3>Back it up</h3><p>Keep at least two copies of the file in different places. <b>Settings → Vault → Back up now</b> makes an encrypted copy anywhere.</p></div></div>
+  </div>
+  <p class="center"><a class="btn" href="https://github.com/Armur-Ai/nilavar/blob/main/docs/USER_GUIDE.md">Read the full User Guide →</a></p>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="section">
+  <p class="eyebrow mono">// questions</p>
+  <h2>FAQ</h2>
+  <div class="faq">
+    <details><summary>What if I forget my passphrase?</summary><p>The vault can't be opened. There is no reset, no recovery email and no backdoor — that's what keeps it safe. Write the passphrase down and store it somewhere safe.</p></details>
+    <details><summary>Does it sync between my devices?</summary><p>Not automatically — Nilavar never goes online. Copy the vault file to the other device (or keep it in a cloud-synced folder) and open it with the same passphrase. If two computers change it at once, Nilavar keeps both versions instead of overwriting.</p></details>
+    <details><summary>Is it safe to store my vault in Google Drive or Dropbox?</summary><p>Yes — they only ever see an encrypted file of a certain size. Use a strong passphrase, since anyone holding the file could try to guess it.</p></details>
+    <details><summary>Can the people who made Nilavar read my notes?</summary><p>No. Nothing leaves your computer and only your passphrase can decrypt the vault.</p></details>
+    <details><summary>Can I get my data out without Nilavar?</summary><p>Yes. The vault is a standard age file with a documented layout. <code>age -d vault.nvault.age</code> plus your passphrase gives you everything as text.</p></details>
+    <details><summary>Why does my computer warn me when I open it?</summary><p>The builds aren't signed with paid Apple/Microsoft developer certificates yet. The app is open source; you can verify downloads with the published SHA256 checksums or build it yourself.</p></details>
+    <details><summary>What doesn't it protect against?</summary><p>A virus already on your computer, someone using it while the vault is unlocked, or someone watching your screen. Lock it when you step away. It's an alpha that hasn't had an independent audit yet — keep backups.</p></details>
+  </div>
+</section>
+
+<!-- LORE -->
+<section class="lore">
+  <p><span class="mono">nilavara</span> (നിലവറ) — Malayalam for an underground vault. Beneath the Sree Padmanabhaswamy Temple in Thiruvananthapuram lie the temple's <i>nilavaras</i>: sealed chambers whose treasure stayed hidden for centuries, one of which — Vault B — has famously never been opened. Nilavar borrows the name for the same idea: what you put inside stays sealed until the right key is presented.</p>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="brand"><span class="dot"></span>NILAVAR</div>
+  <p class="muted small">Free and open source under the MIT license · <a href="https://github.com/Armur-Ai/nilavar">github.com/Armur-Ai/nilavar</a> · by <a href="https://github.com/Armur-Ai">Armur AI</a></p>
+  <p class="muted tiny">Fonts: JetBrains Mono &amp; Inter (SIL OFL 1.1). This website loads nothing from third parties and uses no cookies or analytics.</p>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>
