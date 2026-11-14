@@ -2,8 +2,8 @@
 //! sleep detection.
 //!
 //! The only `unsafe` in first-party code lives in [`disable_core_dumps`]
-//! (documented libc calls) and [`deny_network`] (the macOS `sandbox_init`
-//! call). Everything else is safe Rust.
+//! (documented libc calls), [`deny_network`] (the macOS `sandbox_init`
+//! call) and one type cast in [`screen_locked`]. Everything else is safe Rust.
 
 use std::time::{Duration, Instant, SystemTime};
 
@@ -197,6 +197,34 @@ pub fn deny_network() -> bool {
 #[cfg(not(target_os = "macos"))]
 pub fn deny_network() -> bool {
     false
+}
+
+/// Whether the user's login session currently has its screen locked
+/// (macOS, via the CoreGraphics session dictionary). Polled about once a
+/// second by the app; returns `None` where unsupported.
+#[cfg(target_os = "macos")]
+#[allow(unsafe_code)]
+pub fn screen_locked() -> Option<bool> {
+    use objc2_core_foundation::{CFBoolean, CFDictionary, CFRetained, CFString, CFType};
+    let dict = objc2_core_graphics::CGSessionCopyCurrentDictionary()?;
+    // SAFETY: the CGSession dictionary is documented to map CFString keys to
+    // CF property-list values; `cast_unchecked` only changes the generic
+    // key/value types of this retained, immutable dictionary.
+    let typed: CFRetained<CFDictionary<CFString, CFType>> =
+        unsafe { CFRetained::cast_unchecked(dict) };
+    let key = CFString::from_static_str("CGSSessionScreenIsLocked");
+    Some(
+        typed
+            .get(&key)
+            .and_then(|v| v.downcast::<CFBoolean>().ok())
+            .is_some_and(|b| b.as_bool()),
+    )
+}
+
+/// Screen-lock detection is not implemented on this platform.
+#[cfg(not(target_os = "macos"))]
+pub fn screen_locked() -> Option<bool> {
+    None
 }
 
 /// Whether this process runs inside the macOS App Sandbox.

@@ -980,8 +980,8 @@ fn security_tab(app: &mut NilavarApp, ui: &mut egui::Ui) {
         ui,
         "Clipboard: copying is best effort. Nilavar clears text it placed on the clipboard only if it is still unchanged, \
          and asks the OS to keep it out of clipboard history where supported. Other apps or clipboard managers may already \
-         have read it. Screen locking: sleep is detected on wake (lock-on-resume); screen-lock notifications are not wired up \
-         in this build — use idle lock.",
+         have read it. Sleep is detected on wake (lock-on-resume); on macOS the screen-lock state is checked every second. \
+         Other platforms rely on idle lock.",
     );
 }
 

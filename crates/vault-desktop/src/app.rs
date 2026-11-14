@@ -270,6 +270,7 @@ pub struct NilavarApp {
     pub pending_forget: Vec<egui::Id>,
     /// Wipe egui's per-widget memory (text-edit undo history) next frame.
     pub wipe_egui_memory: bool,
+    last_screen_poll: Instant,
 }
 
 impl NilavarApp {
@@ -330,6 +331,7 @@ impl NilavarApp {
             last_edit_at: None,
             pending_forget: Vec::new(),
             wipe_egui_memory: false,
+            last_screen_poll: Instant::now(),
         }
     }
 
@@ -1443,6 +1445,15 @@ impl NilavarApp {
             if self.sleep.check() && prefs.lock_on_sleep {
                 self.request_lock(LockReason::SystemSleep);
                 return;
+            }
+            if prefs.lock_on_sleep
+                && now.saturating_duration_since(self.last_screen_poll) >= Duration::from_secs(1)
+            {
+                self.last_screen_poll = now;
+                if crate::platform::screen_locked() == Some(true) {
+                    self.request_lock(LockReason::SystemSleep);
+                    return;
+                }
             }
             let idle = Duration::from_secs(u64::from(prefs.idle_lock_secs));
             if now.saturating_duration_since(self.last_activity) >= idle {

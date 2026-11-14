@@ -43,3 +43,14 @@ fn no_network_sandbox_denies_sockets_and_keeps_files() {
 fn network_sandbox_reported_unavailable() {
     assert!(!vault_desktop::platform::deny_network());
 }
+
+#[test]
+fn screen_lock_probe_reports_state_without_panicking() {
+    // Unlocked during the test run (or unsupported on this platform).
+    let r = vault_desktop::platform::screen_locked();
+    if cfg!(target_os = "macos") {
+        assert!(r.is_some());
+    } else {
+        assert!(r.is_none());
+    }
+}

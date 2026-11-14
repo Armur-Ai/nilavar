@@ -4693,6 +4693,8 @@ dependencies = [
  "egui_kittest",
  "image",
  "libc",
+ "objc2-core-foundation",
+ "objc2-core-graphics",
  "rfd",
  "serde",
  "serde_json",
