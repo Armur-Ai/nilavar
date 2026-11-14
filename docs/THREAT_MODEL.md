@@ -45,6 +45,7 @@ the design tries to protect, against whom, and where protection ends.
 | egui layout caches (galleys) | Rendering text creates laid-out copies | Freed one frame after they stop being drawn; the lock screen draws no content. Freed memory is **not** zeroized. |
 | egui `TextEdit` undo history | Snapshots of edited text | Lives in egui memory; never persisted (eframe `persistence` disabled); wiped on lock and when a tab closes. Freed, not zeroized. |
 | Temporary `String`s inside serde_json and egui | Library internals | Bounded by document size; freed after use. |
+| OS accessibility tree (AccessKit) | egui exposes widget labels and editor text to assistive technologies such as screen readers | Required for accessibility. Any process the user has granted OS accessibility permission can read what is on screen while unlocked; review that permission list. The tree is rebuilt without document content once locked (checked by the UI tests). |
 | GPU textures / font atlas | Glyph rasterization (glyph shapes, not text order) | Not controllable. |
 | OS clipboard, clipboard managers, IME buffers | Outside the process | Auto-clear (only if unchanged), privacy hints; documented. |
 | Swap, hibernation images, crash reporters | OS-level | Core dumps disabled for the process; use full-disk encryption (FileVault, BitLocker, LUKS). |

@@ -54,7 +54,9 @@ hand as noted. Linux and Windows have **not** been manually exercised.
 
 - No protection against malware or another person using your **unlocked**
   session, against administrator/root attackers, or against screen
-  capture/recording while a document is visible.
+  capture/recording while a document is visible. Apps you have granted OS
+  accessibility permission can read on-screen text (including the editor)
+  through the accessibility tree while the vault is unlocked.
 - Freed (non-zeroized) copies can remain in process memory: egui's text
   layout caches, its undo snapshots between lock events, the OS clipboard,
   IME/input-method buffers, GPU textures of rendered glyphs, swap and
