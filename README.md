@@ -192,6 +192,9 @@ cargo test --workspace          # 100+ tests incl. headless UI flows
 - Rust workspace: `vault-core` (format, crypto adapter, storage, history,
   search — no GUI, no `unsafe`), `vault-desktop` (egui/eframe app),
   `vault-cli` (`nilavar-cli` recovery tool), `fuzz/`.
+- `site/` is the project website: a static, self-contained page (no
+  third-party requests) ready for Cloudflare Pages — see
+  [`site/README-DEPLOY.md`](site/README-DEPLOY.md).
 - Arch users can also build from source with
   [`packaging/arch/PKGBUILD`](packaging/arch/PKGBUILD) (`makepkg -si`).
 - Docs: [FORMAT](docs/FORMAT.md) · [DECISIONS](docs/DECISIONS.md) ·
