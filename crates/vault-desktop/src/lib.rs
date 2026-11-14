@@ -122,14 +122,14 @@ impl eframe::App for NilavarApp {
                     .map(|x| x.vault().prefs.clipboard_clear_secs)
                     .unwrap_or(30);
                 self.clip_guard.copy(
-                    &mut self.clipboard,
+                    &mut *self.clipboard,
                     &s,
                     Instant::now(),
                     std::time::Duration::from_secs(u64::from(secs)),
                 );
             } else {
                 // Locked screens contain no vault content; plain copy.
-                vault_core::clipboard::ClipboardBackend::write_text(&mut self.clipboard, &s);
+                self.clipboard.write_text(&s);
             }
             zeroize::Zeroize::zeroize(&mut s);
         }

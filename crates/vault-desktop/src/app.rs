@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 
 use egui::{Key, KeyboardShortcut, Modifiers};
 use vault_core::autosave::{Autosave, AutosavePolicy};
-use vault_core::clipboard::{ClearOutcome, ClipboardGuard};
+use vault_core::clipboard::{ClearOutcome, ClipboardBackend, ClipboardGuard};
 use vault_core::crypto::WorkFactor;
 use vault_core::diagnostics::{Capabilities, Diagnostics, Event, LockReason};
 use vault_core::history::SaveTrigger;
@@ -249,7 +249,8 @@ pub struct NilavarApp {
     pub autosave: Autosave,
     pub save_status: SaveStatus,
     pub save_gen_in_flight: Option<u64>,
-    pub clipboard: SystemClipboard,
+    /// Clipboard backend (the system clipboard; tests inject a fake).
+    pub clipboard: Box<dyn ClipboardBackend>,
     pub clip_guard: ClipboardGuard,
     pub last_activity: Instant,
     pub sleep: SleepDetector,
@@ -312,7 +313,7 @@ impl NilavarApp {
             autosave: Autosave::new(AutosavePolicy::default()),
             save_status: SaveStatus::Clean,
             save_gen_in_flight: None,
-            clipboard: SystemClipboard::new(),
+            clipboard: Box::new(SystemClipboard::new()),
             clip_guard: ClipboardGuard::default(),
             last_activity: Instant::now(),
             sleep: SleepDetector::new(),
@@ -541,6 +542,19 @@ impl NilavarApp {
     // ----- documents & tabs ----------------------------------------------
 
     pub fn open_doc(&mut self, id: DocId) {
+        // Reveal the document in the sidebar tree.
+        if let Some(s) = self.session.as_ref() {
+            let mut cur = s.vault().document(id).and_then(|d| d.folder);
+            let mut guard = 0;
+            while let Some(f) = cur {
+                self.ws.expanded.insert(f);
+                cur = s.vault().folder(f).and_then(|x| x.parent);
+                guard += 1;
+                if guard > vault_core::limits::MAX_FOLDER_DEPTH {
+                    break;
+                }
+            }
+        }
         if !self.ws.tabs.contains(&id) {
             self.ws.tabs.push(id);
         }
@@ -754,7 +768,7 @@ impl NilavarApp {
         // Mask immediately: drop all plaintext UI state now.
         self.ws = Workspace::default();
         self.modal = None;
-        if self.clip_guard.clear_now(&mut self.clipboard) == ClearOutcome::Cleared {
+        if self.clip_guard.clear_now(&mut *self.clipboard) == ClearOutcome::Cleared {
             self.diag.record(Event::ClipboardCleared);
         }
         self.wipe_egui_memory = true;
@@ -1295,7 +1309,7 @@ impl NilavarApp {
             .map(|s| s.vault().prefs.clipboard_clear_secs)
             .unwrap_or(30);
         if self.clip_guard.copy(
-            &mut self.clipboard,
+            &mut *self.clipboard,
             text,
             Instant::now(),
             Duration::from_secs(u64::from(secs)),
@@ -1432,7 +1446,7 @@ impl NilavarApp {
         self.drive_lock();
         let now = Instant::now();
 
-        if self.clip_guard.tick(&mut self.clipboard, now) == ClearOutcome::Cleared {
+        if self.clip_guard.tick(&mut *self.clipboard, now) == ClearOutcome::Cleared {
             self.diag.record(Event::ClipboardCleared);
         }
 

@@ -92,6 +92,8 @@ fn harness(dir: &Path, vault: &Path) -> Harness<'static, NilavarApp> {
             app.work = WorkFactor::TESTING;
             app.settings.reduce_motion = true;
             app.screen = unlock_screen(vault);
+            // Never touch the developer's real clipboard from tests.
+            app.clipboard = Box::new(FakeClipboard::default());
             app
         });
     h.run_steps(3);
@@ -398,6 +400,7 @@ fn create_settings_empty_and_narrow_screens_render() {
                 NilavarApp::new(cc, data, vault_desktop::detect_capabilities(false, false));
             app.work = WorkFactor::TESTING;
             app.settings.reduce_motion = true;
+            app.clipboard = Box::new(FakeClipboard::default());
             app
         });
     h.run_steps(3);
@@ -460,4 +463,143 @@ fn create_settings_empty_and_narrow_screens_render() {
     h.set_size(egui::vec2(600.0, 700.0));
     h.run_steps(4);
     shot(&mut h, "14-narrow-window");
+}
+
+/// In-memory clipboard so tests never touch the developer's real clipboard.
+#[derive(Clone, Default)]
+struct FakeClipboard(std::sync::Arc<std::sync::Mutex<Option<String>>>);
+
+impl vault_core::clipboard::ClipboardBackend for FakeClipboard {
+    fn read_text(&mut self) -> Option<zeroize::Zeroizing<String>> {
+        self.0.lock().unwrap().clone().map(zeroize::Zeroizing::new)
+    }
+    fn write_text(&mut self, text: &str) -> bool {
+        *self.0.lock().unwrap() = Some(text.to_owned());
+        true
+    }
+    fn clear(&mut self) -> bool {
+        *self.0.lock().unwrap() = None;
+        true
+    }
+}
+
+#[test]
+fn editor_copy_goes_through_guard_and_is_cleared_on_lock_only_if_unchanged() {
+    let dir = tempfile::tempdir().unwrap();
+    let vault = demo_vault(dir.path());
+    let mut h = harness(dir.path(), &vault);
+    let fake = FakeClipboard::default();
+    h.state_mut().clipboard = Box::new(fake.clone());
+    unlock(&mut h, PASS);
+    wait_until(&mut h, "unlocked", |a| a.state == LockState::Unlocked);
+    h.state_mut().ws.editor.request_focus = true;
+    h.run_steps(2);
+    // Select all and copy with the editor focused.
+    h.key_press_modifiers(Modifiers::COMMAND, Key::A);
+    h.run_steps(1);
+    h.event(egui::Event::Copy);
+    h.run_steps(2);
+    let copied = fake
+        .0
+        .lock()
+        .unwrap()
+        .clone()
+        .expect("copy reached the clipboard backend");
+    assert!(copied.contains(CANARY), "copied the document text");
+    assert!(
+        h.state().clip_guard.has_pending(),
+        "copy is tracked for auto-clear"
+    );
+    // egui's own clipboard command was intercepted (never written directly).
+    assert!(
+        !h.output()
+            .platform_output
+            .commands
+            .iter()
+            .any(|c| matches!(c, egui::OutputCommand::CopyText(_)))
+    );
+    // Locking clears it because it is unchanged.
+    h.key_press_modifiers(Modifiers::COMMAND | Modifiers::SHIFT, Key::L);
+    wait_until(&mut h, "locked", |a| a.state == LockState::Locked);
+    assert!(
+        fake.0.lock().unwrap().is_none(),
+        "unchanged app clipboard value cleared on lock"
+    );
+
+    // Unrelated newer clipboard content survives a lock.
+    if let Screen::Unlock(f) = &mut h.state_mut().screen {
+        f.focus = true;
+    }
+    h.run_steps(2);
+    unlock(&mut h, PASS);
+    wait_until(&mut h, "unlocked again", |a| a.state == LockState::Unlocked);
+    h.state_mut().copy_secret("synthetic value");
+    *fake.0.lock().unwrap() = Some("something the user copied elsewhere".into());
+    h.key_press_modifiers(Modifiers::COMMAND | Modifiers::SHIFT, Key::L);
+    wait_until(&mut h, "locked", |a| a.state == LockState::Locked);
+    assert_eq!(
+        fake.0.lock().unwrap().as_deref(),
+        Some("something the user copied elsewhere")
+    );
+}
+
+#[test]
+fn preview_links_require_confirmation_and_never_open_directly() {
+    let dir = tempfile::tempdir().unwrap();
+    let vault = demo_vault(dir.path());
+    let mut h = harness(dir.path(), &vault);
+    unlock(&mut h, PASS);
+    wait_until(&mut h, "unlocked", |a| a.state == LockState::Unlocked);
+    let id = h
+        .state()
+        .session
+        .as_ref()
+        .unwrap()
+        .vault()
+        .documents
+        .iter()
+        .find(|d| d.title.expose() == "Staging API credentials")
+        .unwrap()
+        .id;
+    h.state_mut().open_doc(id);
+    h.state_mut().ws.right = RightPane::Preview;
+    h.run_steps(4);
+    let link = h.get_by_label_contains("See runbook");
+    let r = link.rect();
+    // Click on the word "runbook" near the end of the label.
+    h.event(egui::Event::PointerMoved(egui::pos2(
+        r.right() - 20.0,
+        r.center().y,
+    )));
+    h.event(egui::Event::PointerButton {
+        pos: egui::pos2(r.right() - 20.0, r.center().y),
+        button: egui::PointerButton::Primary,
+        pressed: true,
+        modifiers: Modifiers::NONE,
+    });
+    h.event(egui::Event::PointerButton {
+        pos: egui::pos2(r.right() - 20.0, r.center().y),
+        button: egui::PointerButton::Primary,
+        pressed: false,
+        modifiers: Modifiers::NONE,
+    });
+    h.run_steps(3);
+    assert!(
+        matches!(&h.state().modal, Some(vault_desktop::app::Modal::Link(d)) if d == "https://example.invalid/runbook"),
+        "clicking a link shows the confirmation dialog"
+    );
+    assert!(
+        h.query_by_label_contains("https://example.invalid/runbook")
+            .is_some(),
+        "destination is visible"
+    );
+    assert!(
+        !h.output()
+            .platform_output
+            .commands
+            .iter()
+            .any(|c| matches!(c, egui::OutputCommand::OpenUrl(_))),
+        "no URL opened without confirmation"
+    );
+    shot(&mut h, "15-link-confirmation");
 }
