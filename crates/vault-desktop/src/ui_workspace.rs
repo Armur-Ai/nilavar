@@ -209,6 +209,7 @@ fn status_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
                 .stroke(Stroke::new(1.0, theme::BORDER)),
         )
         .show(ui, |ui| {
+            let bar_w = ui.available_width();
             ui.horizontal_centered(|ui| {
                 let small = |t: String, c: Color32| RichText::new(t).font(theme::mono(11.0)).color(c);
                 // Save state — always a real state.
@@ -244,7 +245,7 @@ fn status_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
                         .active
                         .and_then(|id| app.session.as_ref().and_then(|s| s.vault().document(id)))
                         .map(|d| (d.text.char_count(), d.text.expose().split_whitespace().count(), d.mode, d.text.len()));
-                    if let Some((chars, words, dmode, bytes)) = info {
+                    if let Some((chars, words, dmode, bytes)) = info.filter(|_| bar_w >= 760.0) {
                         ui.label(small(format!("{chars} chars · {words} words"), theme::MUTED));
                         let mode = match dmode {
                             DocMode::Markdown => "Markdown",
@@ -272,9 +273,11 @@ fn status_bar(app: &mut NilavarApp, ui: &mut egui::Ui) {
                         } else {
                             "This app implements no networking. No OS sandbox is enforcing that in this build — see Security & capabilities."
                         });
+                    if bar_w >= 560.0 {
                     ui.label(small("│".into(), theme::BORDER));
                     ui.label(small(format!("{} age · scrypt", icon::LOCK_SIMPLE), theme::MUTED))
                         .on_hover_text("Vault encrypted at rest with age passphrase mode (scrypt).");
+                    }
                     if let Some(s) = app.session.as_ref() {
                         let idle = std::time::Duration::from_secs(u64::from(s.vault().prefs.idle_lock_secs));
                         let left = idle.saturating_sub(app.last_activity.elapsed());

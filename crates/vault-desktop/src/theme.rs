@@ -163,6 +163,7 @@ fn visuals() -> Visuals {
     v.selection.bg_fill = Color32::from_rgb(0x1A, 0x4D, 0x33);
     v.selection.stroke = Stroke::new(1.0, GREEN);
     v.text_cursor.stroke = Stroke::new(2.0, GREEN);
+    v.slider_trailing_fill = true;
 
     let w = &mut v.widgets;
     w.noninteractive.bg_fill = PANEL;
@@ -171,7 +172,7 @@ fn visuals() -> Visuals {
     w.noninteractive.fg_stroke = Stroke::new(1.0, TEXT);
     w.noninteractive.corner_radius = r;
 
-    w.inactive.bg_fill = PANEL_HI;
+    w.inactive.bg_fill = Color32::from_rgb(0x16, 0x2A, 0x23);
     w.inactive.weak_bg_fill = PANEL_HI;
     w.inactive.bg_stroke = Stroke::new(1.0, BORDER);
     w.inactive.fg_stroke = Stroke::new(1.0, TEXT);

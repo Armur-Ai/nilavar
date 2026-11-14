@@ -381,3 +381,81 @@ fn idle_lock_saves_dirty_session_encrypted() {
             .any(|d| d.text.expose().contains("idle edit"))
     );
 }
+
+#[test]
+fn create_settings_empty_and_narrow_screens_render() {
+    let dir = tempfile::tempdir().unwrap();
+    let data = DataDirs::at(dir.path().join("data"));
+    let target = dir.path().join("new.nvault.age");
+    let t2 = target.clone();
+    let mut h = Harness::builder()
+        .with_size(egui::vec2(1280.0, 800.0))
+        .with_max_steps(1_000_000)
+        .wgpu()
+        .build_eframe(move |cc| {
+            let mut app = NilavarApp::new(cc, data, vault_desktop::detect_capabilities(false));
+            app.work = WorkFactor::TESTING;
+            app.settings.reduce_motion = true;
+            app
+        });
+    h.run_steps(3);
+    shot(&mut h, "09-welcome");
+    h.get_by_label_contains("Create new vault").click();
+    h.run_steps(2);
+    if let Screen::Create(f) = &mut h.state_mut().screen {
+        f.path = Some(t2);
+    }
+    h.run_steps(2);
+    // Mismatched confirmation keeps the create button disabled.
+    if let Screen::Create(f) = &mut h.state_mut().screen {
+        f.pass = zeroize::Zeroizing::new("correct horse battery staple orbit".into());
+        f.confirm = zeroize::Zeroizing::new("correct horse battery staple".into());
+    }
+    h.run_steps(3);
+    assert!(h.query_by_label_contains("do not match").is_some());
+    if let Screen::Create(f) = &mut h.state_mut().screen {
+        f.confirm = zeroize::Zeroizing::new("correct horse battery staple orbit".into());
+        f.ack_no_reset = true;
+    }
+    h.run_steps(3);
+    shot(&mut h, "10-create-vault");
+    h.get_by_label_contains("Create encrypted vault").click();
+    wait_until(&mut h, "created", |a| a.state == LockState::Unlocked);
+    assert!(target.exists());
+    let (v, _) = session::open_vault_file(
+        &target,
+        &Passphrase::from("correct horse battery staple orbit"),
+    )
+    .unwrap();
+    assert_eq!(v.documents.len(), 1);
+
+    // Empty state: close the welcome tab.
+    h.key_press_modifiers(Modifiers::COMMAND, Key::W);
+    h.run_steps(3);
+    assert!(h.state().ws.active.is_none());
+    shot(&mut h, "11-empty-state");
+
+    // Settings (security tab).
+    h.key_press_modifiers(Modifiers::COMMAND, Key::Comma);
+    h.run_steps(2);
+    h.get_by_label("Security").click();
+    h.run_steps(8);
+    shot(&mut h, "12-settings-security");
+    h.get_by_label("About & recovery").click();
+    h.run_steps(3);
+    shot(&mut h, "13-settings-about");
+    h.key_press(Key::Escape);
+    h.run_steps(2);
+
+    // Narrow window collapses side panels instead of crushing the editor.
+    h.state_mut().run_command(
+        vault_desktop::commands::Command::NewDocument,
+        &egui::Context::default(),
+    );
+    h.run_steps(2);
+    h.key_press(Key::Escape);
+    h.state_mut().modal = None;
+    h.set_size(egui::vec2(600.0, 700.0));
+    h.run_steps(4);
+    shot(&mut h, "14-narrow-window");
+}

@@ -864,10 +864,10 @@ fn settings(app: &mut NilavarApp, ui: &mut egui::Ui, next: &mut Option<Modal>) -
         }
     });
     ui.add_space(8.0);
-    let h = (ui.ctx().content_rect().height() * 0.62).max(300.0);
+    let h = (ui.ctx().content_rect().height() * 0.62).clamp(260.0, 560.0);
     egui::ScrollArea::vertical()
         .max_height(h)
-        .auto_shrink([false, true])
+        .auto_shrink([false, false])
         .show(ui, |ui| match app.settings_tab {
             SettingsTab::Editor => editor_tab(app, ui),
             SettingsTab::Security => security_tab(app, ui),

@@ -76,7 +76,9 @@ impl Rain {
             }
             let len = 6 + (self.next() % 18) as usize;
             let glyphs = (0..len).map(|_| self.glyph()).collect();
-            let y = area.top() - self.rand_f() * area.height();
+            // Spread drops over the whole area so a static (reduced-motion)
+            // frame still shows the effect.
+            let y = area.top() + self.rand_f() * area.height() * 1.3;
             let speed = 40.0 + self.rand_f() * 110.0;
             self.drops.push(Drop {
                 x: area.left() + c as f32 * col_w + col_w * 0.5,
