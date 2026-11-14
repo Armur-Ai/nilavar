@@ -44,7 +44,18 @@ tests (`crates/vault-desktop/tests/ui_flows.rs`).
 
 ## Install
 
-### From source (all platforms)
+### One command (macOS / Linux, from source, no sudo)
+
+```bash
+git clone <this repository> nilavar && cd nilavar
+./scripts/install.sh
+```
+
+On macOS this builds `~/Applications/Nilavar.app` and links `nilavar-cli`
+into `~/.local/bin`; on Linux it installs into `~/.local`. It needs Rust
+from <https://rustup.rs> (the pinned toolchain installs automatically).
+
+### From source with cargo (all platforms)
 
 Requirements: [Rust](https://rustup.rs) (the pinned toolchain in
 `rust-toolchain.toml` is installed automatically), a C toolchain, and on
